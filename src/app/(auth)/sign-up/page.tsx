@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import PageTransition from "@/components/shared/PageTransition";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // Validation schema
 const signUpSchema = z
@@ -34,6 +36,10 @@ const signUpSchema = z
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
 function page() {
+  const router = useRouter();
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
+
   const {
     register,
     handleSubmit,
@@ -45,31 +51,60 @@ function page() {
 
   const onSubmit = async (data: SignUpFormData) => {
     try {
-      // TODO: Implement actual sign-up logic here
-      console.log("Sign up data:", data);
+      setError("");
+      setSuccess("");
 
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Register user via API
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
 
-      // TODO: Handle successful registration
-      alert("Registration successful! (This is a placeholder)");
-      reset();
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || "Registration failed");
+        return;
+      }
+
+      // Auto-login after successful registration
+      const signInResult = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setSuccess("Registration successful! Please sign in manually.");
+        reset();
+        return;
+      }
+
+      // Successful registration and login
+      router.push("/board");
+      router.refresh();
     } catch (error) {
-      // TODO: Handle registration errors
       console.error("Registration error:", error);
-      alert("Registration failed! (This is a placeholder error handler)");
+      setError("An error occurred during registration");
     }
   };
 
   const handleGoogleSignUp = async () => {
     try {
-      // TODO: Implement Google OAuth sign-up logic here
-      console.log("Google sign-up clicked");
-      alert("Google sign-up clicked! (This is a placeholder)");
+      setError("");
+
+      await signIn("google", {
+        callbackUrl: "/board",
+      });
     } catch (error) {
-      // TODO: Handle Google sign-up errors
       console.error("Google sign-up error:", error);
-      alert("Google sign-up failed! (This is a placeholder error handler)");
+      setError("An error occurred during Google sign-up");
     }
   };
 
@@ -90,6 +125,18 @@ function page() {
               <div className="text-sm text-neutral-500 pt-1">
                 Create an account to get started.
               </div>
+
+              {error && (
+                <div className="mt-4 p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-md">
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="mt-4 p-3 text-sm text-green-700 bg-green-100 border border-green-200 rounded-md">
+                  {success}
+                </div>
+              )}
 
               <form
                 onSubmit={handleSubmit(onSubmit)}
@@ -158,7 +205,7 @@ function page() {
 
               <div className="flex items-center justify-start pt-4 gap-1">
                 <h2 className="text-sm text-neutral-500">
-                  Already you have an account?
+                  Already have an account?
                 </h2>
                 <Link href="/sign-in">
                   <h2 className="text-sm text-ring/80 hover:text-ring/60 transition-all duration-300">
@@ -177,7 +224,8 @@ function page() {
                 <Button
                   type="button"
                   onClick={handleGoogleSignUp}
-                  className="hover:cursor-pointer w-full h-11 bg-neutral-50 text-neutral-700 border border-neutral-200 hover:bg-neutral-100 hover:text-neutral-800 font-medium"
+                  disabled={isSubmitting}
+                  className="hover:cursor-pointer w-full h-11 bg-neutral-50 text-neutral-700 border border-neutral-200 hover:bg-neutral-100 hover:text-neutral-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Image
                     src="/google.png"
@@ -185,7 +233,7 @@ function page() {
                     width={20}
                     height={20}
                   />
-                  Sign up with Google
+                  Sign in with Google
                 </Button>
               </div>
             </div>

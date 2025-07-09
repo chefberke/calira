@@ -28,3 +28,11 @@ export default db;
 
 // Export all schemas for easy access
 export { users, teams, teamMembers, tasks };
+
+// Export individual auth tables for next-auth
+export {
+  users as usersTable,
+  accounts as accountsTable,
+  sessions as sessionsTable,
+  verificationTokens as verificationTokensTable,
+} from "./schema/users";

@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import PageTransition from "@/components/shared/PageTransition";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // Validation schema
 const signInSchema = z.object({
@@ -22,6 +24,9 @@ const signInSchema = z.object({
 type SignInFormData = z.infer<typeof signInSchema>;
 
 function page() {
+  const router = useRouter();
+  const [error, setError] = useState<string>("");
+
   const {
     register,
     handleSubmit,
@@ -33,31 +38,38 @@ function page() {
 
   const onSubmit = async (data: SignInFormData) => {
     try {
-      // TODO: Implement actual sign-in logic here
-      console.log("Sign in data:", data);
+      setError("");
 
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
 
-      // TODO: Handle successful login
-      alert("Login successful! (This is a placeholder)");
-      reset();
+      if (result?.error) {
+        setError("Invalid email or password");
+        return;
+      }
+
+      // Successful login
+      router.push("/board");
+      router.refresh();
     } catch (error) {
-      // TODO: Handle login errors
       console.error("Login error:", error);
-      alert("Login failed! (This is a placeholder error handler)");
+      setError("An error occurred during login");
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      // TODO: Implement Google OAuth sign-in logic here
-      console.log("Google sign-in clicked");
-      alert("Google sign-in clicked! (This is a placeholder)");
+      setError("");
+
+      await signIn("google", {
+        callbackUrl: "/board",
+      });
     } catch (error) {
-      // TODO: Handle Google sign-in errors
       console.error("Google sign-in error:", error);
-      alert("Google sign-in failed! (This is a placeholder error handler)");
+      setError("An error occurred during Google sign-in");
     }
   };
 
@@ -78,6 +90,12 @@ function page() {
               <div className="text-sm text-neutral-500 pt-1">
                 Welcome back! Please sign in to continue.
               </div>
+
+              {error && (
+                <div className="mt-4 p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-md">
+                  {error}
+                </div>
+              )}
 
               <form
                 onSubmit={handleSubmit(onSubmit)}
@@ -149,7 +167,8 @@ function page() {
                 <Button
                   type="button"
                   onClick={handleGoogleSignIn}
-                  className="hover:cursor-pointer w-full h-11 bg-neutral-50 text-neutral-700 border border-neutral-200 hover:bg-neutral-100 hover:text-neutral-800 font-medium"
+                  disabled={isSubmitting}
+                  className="hover:cursor-pointer w-full h-11 bg-neutral-50 text-neutral-700 border border-neutral-200 hover:bg-neutral-100 hover:text-neutral-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Image
                     src="/google.png"
