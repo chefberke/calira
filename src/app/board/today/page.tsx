@@ -1,7 +1,14 @@
+"use client";
+
 import React from "react";
+import PageTransition from "@/components/shared/PageTransition";
 
 function page() {
-  return <div>page</div>;
+  return (
+    <PageTransition>
+      <div>page</div>
+    </PageTransition>
+  );
 }
 
 export default page;

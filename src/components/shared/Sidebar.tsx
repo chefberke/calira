@@ -132,9 +132,9 @@ function Sidebar() {
   };
 
   return (
-    <div className="w-xl h-full p-4">
+    <div className="w-xl h-full py-8 px-6">
       <div className="w-full h-full bg-white rounded-2xl p-4 shadow-sm border border-neutral-100">
-        <div className="flex flex-col items-start justify-start w-full h-full py-6 px-2">
+        <div className="flex flex-col items-start justify-start w-full h-full py-6 px-8">
           <div className="w-full space-y-1">
             {sidebarItems.map((item) => (
               <Link
