@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Home, Clock, Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 interface SidebarItem {
   id: string;
@@ -23,7 +23,15 @@ function Sidebar() {
     {
       id: "home",
       label: "Home",
-      icon: <Home size={20} />,
+      icon: (
+        <Image
+          src="/house.svg"
+          alt="Home"
+          width={20}
+          height={20}
+          className="w-5 h-5"
+        />
+      ),
       href: "/board",
       count: 6,
       type: "navigation",
@@ -31,7 +39,15 @@ function Sidebar() {
     {
       id: "today",
       label: "Today",
-      icon: <Clock size={20} />,
+      icon: (
+        <Image
+          src="/clock.svg"
+          alt="Today"
+          width={20}
+          height={20}
+          className="w-5 h-5"
+        />
+      ),
       href: "/board/today",
       count: 3,
       type: "navigation",
@@ -39,7 +55,15 @@ function Sidebar() {
     {
       id: "create-list",
       label: "Create new list",
-      icon: <Plus size={16} />,
+      icon: (
+        <Image
+          src="/plus.svg"
+          alt="Create new list"
+          width={20}
+          height={20}
+          className="w-4 h-4"
+        />
+      ),
       href: "/board/create",
       shortcut: "⌘E",
       type: "action",
@@ -47,6 +71,19 @@ function Sidebar() {
   ];
 
   const isActive = (href: string) => {
+    // Find the most specific matching href
+    const matchingItems = sidebarItems.filter(
+      (item) => pathname === item.href || pathname.startsWith(item.href + "/")
+    );
+
+    // If multiple items match, only activate the most specific one (longest href)
+    if (matchingItems.length > 1) {
+      const mostSpecific = matchingItems.reduce((prev, current) =>
+        prev.href.length > current.href.length ? prev : current
+      );
+      return href === mostSpecific.href;
+    }
+
     return pathname === href || pathname.startsWith(href + "/");
   };
 

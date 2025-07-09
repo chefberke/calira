@@ -1,7 +1,7 @@
 import React from "react";
 
 function page() {
-  return <div className="w-full h-full">deneme</div>;
+  return <div>page</div>;
 }
 
 export default page;
