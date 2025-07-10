@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import PageTransition from "@/components/shared/PageTransition";
+import CreateTask from "@/components/shared/CreateTask";
 
 function page() {
   // Mock user data
@@ -41,7 +42,7 @@ function page() {
           {/* Greeting and user info with more icon */}
           <div className="mb-2 flex justify-between items-start group">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">
+              <h1 className="text-3xl font-semibold text-gray-700">
                 {greeting}, {user.name.split(" ")[0]}!
               </h1>
               {/* Date display with greyish color directly below */}
@@ -56,6 +57,7 @@ function page() {
             />
           </div>
         </div>
+        <CreateTask />
       </div>
     </PageTransition>
   );
