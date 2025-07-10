@@ -39,6 +39,20 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
+  // Global keyboard event listener for Command+E shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Command+E (Mac) or Ctrl+E (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
+        e.preventDefault();
+        handleCreateListClick();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Click outside detection
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -191,6 +205,16 @@ function Sidebar({ onNavigate }: SidebarProps) {
       setListName("");
       setSelectedEmoji("🍎");
       setShowEmojiPicker(false);
+    } else {
+      // Focus input when opening (after animation)
+      setTimeout(() => {
+        const input = formRef.current?.querySelector(
+          'input[type="text"]'
+        ) as HTMLInputElement;
+        if (input) {
+          input.focus();
+        }
+      }, 100);
     }
   };
 
@@ -287,45 +311,58 @@ function Sidebar({ onNavigate }: SidebarProps) {
             ))}
 
             {/* Custom Teams */}
-            {customTeams.map((team) => (
-              <Link
-                key={team.id}
-                href={`/board/team/${team.id}`}
-                className={`flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group ${
-                  pathname === `/board/team/${team.id}` ||
-                  pathname.startsWith(`/board/team/${team.id}/`)
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-800 hover:text-neutral-900"
-                }`}
-                onClick={handleLinkClick}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`${
+            <AnimatePresence mode="popLayout">
+              {customTeams.map((team) => (
+                <motion.div
+                  key={team.id}
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                  layout
+                >
+                  <Link
+                    href={`/board/team/${team.id}`}
+                    className={`flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group ${
                       pathname === `/board/team/${team.id}` ||
                       pathname.startsWith(`/board/team/${team.id}/`)
-                        ? "text-neutral-900"
-                        : "text-neutral-700 group-hover:text-neutral-900"
+                        ? "bg-neutral-100 text-neutral-900"
+                        : "text-neutral-800 hover:text-neutral-900"
                     }`}
+                    onClick={handleLinkClick}
                   >
-                    <span className="text-lg">{team.emoji || "📋"}</span>
-                  </div>
-                  <span className="font-semibold text-sm">{team.name}</span>
-                </div>
-                {teamCounts[team.id] > 0 && (
-                  <div
-                    className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${
-                      pathname === `/board/team/${team.id}` ||
-                      pathname.startsWith(`/board/team/${team.id}/`)
-                        ? "bg-neutral-200 text-neutral-700"
-                        : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200 group-hover:text-neutral-700"
-                    }`}
-                  >
-                    {teamCounts[team.id]}
-                  </div>
-                )}
-              </Link>
-            ))}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`${
+                          pathname === `/board/team/${team.id}` ||
+                          pathname.startsWith(`/board/team/${team.id}/`)
+                            ? "text-neutral-900"
+                            : "text-neutral-700 group-hover:text-neutral-900"
+                        }`}
+                      >
+                        <span className="text-lg">{team.emoji || "📋"}</span>
+                      </div>
+                      <span className="font-semibold text-sm">{team.name}</span>
+                    </div>
+                    {teamCounts[team.id] > 0 && (
+                      <div
+                        className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${
+                          pathname === `/board/team/${team.id}` ||
+                          pathname.startsWith(`/board/team/${team.id}/`)
+                            ? "bg-neutral-200 text-neutral-700"
+                            : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200 group-hover:text-neutral-700"
+                        }`}
+                      >
+                        {teamCounts[team.id]}
+                      </div>
+                    )}
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
             {/* Create new list section */}
             <div className="space-y-2">
