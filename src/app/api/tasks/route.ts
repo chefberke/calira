@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { tasks } from "@/db/schema/tasks";
 import { teams } from "@/db/schema/teams";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lt } from "drizzle-orm";
 import { z } from "zod";
 
 // Validation schema for creating a task
@@ -128,6 +128,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const teamId = searchParams.get("teamId");
     const completed = searchParams.get("completed");
+    const todayFilter = searchParams.get("today");
 
     // Build query conditions
     let whereConditions = [eq(tasks.createdById, session.user.id)];
@@ -138,6 +139,25 @@ export async function GET(request: NextRequest) {
 
     if (completed !== null) {
       whereConditions.push(eq(tasks.completed, completed === "true"));
+    }
+
+    // Add today filter if requested
+    if (todayFilter === "true") {
+      // Get today's date range (start and end of day)
+      const today = new Date();
+      const startOfDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
+      const endOfDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 1
+      );
+
+      whereConditions.push(gte(tasks.dueDate, startOfDay));
+      whereConditions.push(lt(tasks.dueDate, endOfDay));
     }
 
     // Fetch tasks

@@ -20,7 +20,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useCreateTask, useTeams } from "@/lib/hooks/useTasks";
 
-function CreateTask() {
+interface CreateTaskProps {
+  defaultTeam?: "home" | "today";
+}
+
+function CreateTask({ defaultTeam = "home" }: CreateTaskProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -36,12 +40,17 @@ function CreateTask() {
 
   const teams = teamsData?.teams || [];
   const homeTeam = teams.find((team) => team.name.toLowerCase() === "home");
+  const todayTeam = teams.find((team) => team.name.toLowerCase() === "today");
 
   useEffect(() => {
-    if (homeTeam && selectedTeamId === "") {
-      setSelectedTeamId(homeTeam.id.toString());
+    if (teams.length > 0 && selectedTeamId === "") {
+      if (defaultTeam === "today" && todayTeam) {
+        setSelectedTeamId(todayTeam.id.toString());
+      } else if (homeTeam) {
+        setSelectedTeamId(homeTeam.id.toString());
+      }
     }
-  }, [homeTeam, selectedTeamId]);
+  }, [teams, homeTeam, todayTeam, selectedTeamId, defaultTeam]);
 
   // Add keyboard event listener for Escape key
   useEffect(() => {
@@ -81,11 +90,20 @@ function CreateTask() {
           ? parseInt(selectedTeamId)
           : homeTeam.id;
 
+      // Check if "Today" team is selected and no date is explicitly chosen
+      const selectedTeam = teams.find((team) => team.id === targetTeamId);
+      let finalDueDate = selectedDate?.toISOString();
+
+      if (selectedTeam?.name.toLowerCase() === "today" && !selectedDate) {
+        // If "Today" is selected but no date is chosen, use today's date
+        finalDueDate = new Date().toISOString();
+      }
+
       await createTaskMutation.mutateAsync({
         title: title.trim(),
         teamId: targetTeamId,
         completed,
-        dueDate: selectedDate?.toISOString(),
+        dueDate: finalDueDate,
       });
 
       setTitle("");

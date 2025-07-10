@@ -136,6 +136,7 @@ const getTeams = async (): Promise<TeamsResponse> => {
 const getTasks = async (params?: {
   teamId?: number;
   completed?: boolean;
+  today?: boolean;
 }): Promise<TasksResponse> => {
   const searchParams = new URLSearchParams();
 
@@ -145,6 +146,10 @@ const getTasks = async (params?: {
 
   if (params?.completed !== undefined) {
     searchParams.append("completed", params.completed.toString());
+  }
+
+  if (params?.today) {
+    searchParams.append("today", "true");
   }
 
   const response = await fetch(`/api/tasks?${searchParams.toString()}`);
@@ -308,7 +313,11 @@ export const useTeams = () => {
   });
 };
 
-export const useTasks = (params?: { teamId?: number; completed?: boolean }) => {
+export const useTasks = (params?: {
+  teamId?: number;
+  completed?: boolean;
+  today?: boolean;
+}) => {
   return useQuery({
     queryKey: ["tasks", params],
     queryFn: () => getTasks(params),

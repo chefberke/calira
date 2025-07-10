@@ -14,9 +14,10 @@ import {
 interface TasksProps {
   teamId?: number;
   showCompleted?: boolean;
+  today?: boolean;
 }
 
-function Tasks({ teamId, showCompleted = true }: TasksProps) {
+function Tasks({ teamId, showCompleted = true, today = false }: TasksProps) {
   const {
     data: tasksData,
     isLoading,
@@ -24,6 +25,7 @@ function Tasks({ teamId, showCompleted = true }: TasksProps) {
   } = useTasks({
     teamId,
     completed: showCompleted ? undefined : false,
+    today,
   });
 
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
