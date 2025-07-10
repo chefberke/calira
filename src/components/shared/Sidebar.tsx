@@ -16,7 +16,11 @@ interface SidebarItem {
   type?: "navigation" | "action"; // Add type to differentiate items
 }
 
-function Sidebar() {
+interface SidebarProps {
+  onNavigate?: () => void; // Optional callback for mobile navigation
+}
+
+function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { data: taskCounts, isLoading } = useTaskCounts();
 
@@ -137,16 +141,24 @@ function Sidebar() {
     }
   };
 
+  const handleLinkClick = () => {
+    // Call onNavigate when a link is clicked (for mobile menu closing)
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
+
   return (
-    <div className="w-xl h-full py-8 px-6">
-      <div className="w-full h-full bg-white rounded-2xl p-4 shadow-sm border border-neutral-100">
-        <div className="flex flex-col items-start justify-start w-full h-full py-6 px-8">
+    <div className="w-full 2xl:w-xl xl:w-lg h-full py-4 lg:py-8 px-3 lg:px-6">
+      <div className="w-full h-full bg-white rounded-2xl p-3 lg:p-4 shadow-sm border border-neutral-100">
+        <div className="flex flex-col items-start justify-start w-full h-full py-4 lg:py-6 px-4 lg:px-8">
           <div className="w-full space-y-1">
             {sidebarItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.href}
                 className={getItemStyles(item)}
+                onClick={handleLinkClick}
               >
                 <div className="flex items-center gap-3">
                   <div className={getIconStyles(item)}>{item.icon}</div>

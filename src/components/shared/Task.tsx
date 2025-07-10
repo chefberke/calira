@@ -251,7 +251,7 @@ function Task({
   return (
     <>
       <div className="w-full max-w-2xl pt-2.5">
-        <div className="group flex items-center justify-between h-14 bg-neutral-100 rounded-2xl border-none pl-3 pr-2 font-medium transition-all duration-300 hover:bg-neutral-100 cursor-pointer">
+        <div className="group flex items-center justify-between h-14 bg-neutral-100 rounded-2xl border-none pl-3 pr-2 font-medium transition-all duration-300 hover:bg-neutral-100">
           {/* Left side - Checkbox and Task Title */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Checkbox
@@ -398,7 +398,7 @@ function Task({
           side="right"
           className="bg-transparent border-0 shadow-none w-auto h-full p-8 flex flex-col [&>button]:hidden outline-none focus:outline-none ring-0 focus:ring-0"
         >
-          <div className="w-[520px] h-full bg-white rounded-2xl shadow-sm border border-neutral-100 p-6 flex flex-col relative">
+          <div className="w-[450px] h-full bg-white rounded-2xl shadow-sm border border-neutral-100 p-6 flex flex-col relative">
             {/* Hidden title for accessibility */}
             <VisuallyHidden>
               <SheetTitle>Edit Task</SheetTitle>

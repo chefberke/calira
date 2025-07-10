@@ -39,23 +39,25 @@ function page() {
 
   return (
     <PageTransition>
-      <div className="w-full h-full py-10 px-64">
-        <div className="mb-8">
+      <div className="w-full h-full py-6 sm:py-8 lg:py-10 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-20 2xl:px-64">
+        <div className="mb-6 lg:mb-8">
           {/* Greeting and user info with more icon */}
           <div className="mb-2 flex justify-between items-start group">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-700">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-700">
                 {greeting}, {user.name.split(" ")[0]}!
               </h1>
               {/* Date display with greyish color directly below */}
-              <p className="text-gray-500 text-2xl">It's {formattedDate}</p>
+              <p className="text-gray-500 text-xl sm:text-2xl">
+                It's {formattedDate}
+              </p>
             </div>
             <Image
               src="/more.svg"
               alt="More options"
               width={24}
               height={24}
-              className="cursor-pointer opacity-0 group-hover:opacity-40 hover:opacity-60 transition-opacity duration-200"
+              className="cursor-pointer opacity-0 group-hover:opacity-40 hover:opacity-60 transition-opacity duration-200 hidden sm:block"
             />
           </div>
         </div>
