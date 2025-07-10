@@ -151,6 +151,11 @@ function Sidebar({ onNavigate }: SidebarProps) {
       return href.startsWith("/board/team/") && pathname.startsWith(href + "/");
     }
 
+    // For /board (Home), only activate if we're exactly on /board
+    if (href === "/board") {
+      return pathname === "/board";
+    }
+
     // For other pages, check if it starts with the href
     return pathname.startsWith(href + "/");
   };
@@ -431,7 +436,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
                           <button
                             type="button"
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors text-sm"
+                            className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg hover:bg-neutral-200 transition-colors text-sm"
                           >
                             <span>{selectedEmoji}</span>
                             <svg
