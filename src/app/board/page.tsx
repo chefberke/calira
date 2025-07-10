@@ -5,6 +5,7 @@ import Image from "next/image";
 import PageTransition from "@/components/shared/PageTransition";
 import CreateTask from "@/components/shared/CreateTask";
 import Task from "@/components/shared/Task";
+import Tasks from "@/components/shared/Tasks";
 
 function page() {
   // Mock user data
@@ -59,7 +60,7 @@ function page() {
           </div>
         </div>
         <CreateTask />
-        <Task />
+        <Tasks />
       </div>
     </PageTransition>
   );

@@ -1,0 +1,291 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Task } from "@/db/schema/tasks";
+import { Team } from "@/db/schema/teams";
+
+// Types for API requests and responses
+export interface CreateTaskRequest {
+  title: string;
+  description?: string;
+  teamId: number;
+  assignedToId?: string;
+  dueDate?: string;
+  completed?: boolean;
+}
+
+export interface UpdateTaskRequest {
+  id: number;
+  title?: string;
+  description?: string;
+  teamId?: number;
+  assignedToId?: string;
+  dueDate?: string;
+  completed?: boolean;
+}
+
+export interface CreateTaskResponse {
+  message: string;
+  task: Task;
+}
+
+export interface UpdateTaskResponse {
+  message: string;
+  task: Task;
+}
+
+export interface DeleteTaskResponse {
+  message: string;
+}
+
+export interface TeamsResponse {
+  teams: Team[];
+}
+
+export interface TasksResponse {
+  tasks: Task[];
+}
+
+// API functions
+const createTask = async (
+  data: CreateTaskRequest
+): Promise<CreateTaskResponse> => {
+  const response = await fetch("/api/tasks", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create task");
+  }
+
+  return response.json();
+};
+
+const updateTask = async (
+  data: UpdateTaskRequest
+): Promise<UpdateTaskResponse> => {
+  const response = await fetch("/api/tasks", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to update task");
+  }
+
+  return response.json();
+};
+
+const deleteTask = async (id: number): Promise<DeleteTaskResponse> => {
+  const response = await fetch(`/api/tasks?id=${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to delete task");
+  }
+
+  return response.json();
+};
+
+const duplicateTask = async (
+  originalTask: Task
+): Promise<CreateTaskResponse> => {
+  const duplicateData: CreateTaskRequest = {
+    title: `${originalTask.title} (Copy)`,
+    description: originalTask.description || undefined,
+    teamId: originalTask.teamId,
+    assignedToId: originalTask.assignedToId || undefined,
+    dueDate: originalTask.dueDate?.toISOString(),
+    completed: false, // Always create duplicates as incomplete
+  };
+
+  return createTask(duplicateData);
+};
+
+const getTeams = async (): Promise<TeamsResponse> => {
+  const response = await fetch("/api/teams");
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch teams");
+  }
+
+  return response.json();
+};
+
+const getTasks = async (params?: {
+  teamId?: number;
+  completed?: boolean;
+}): Promise<TasksResponse> => {
+  const searchParams = new URLSearchParams();
+
+  if (params?.teamId) {
+    searchParams.append("teamId", params.teamId.toString());
+  }
+
+  if (params?.completed !== undefined) {
+    searchParams.append("completed", params.completed.toString());
+  }
+
+  const response = await fetch(`/api/tasks?${searchParams.toString()}`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch tasks");
+  }
+
+  return response.json();
+};
+
+// Hooks
+export const useCreateTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTask,
+    onMutate: async (newTaskData) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+      // Snapshot the previous value
+      const previousTasks = queryClient.getQueryData(["tasks"]);
+
+      // Create an optimistic task with a temporary ID
+      const optimisticTask = {
+        id: Date.now(), // Temporary ID
+        title: newTaskData.title,
+        description: newTaskData.description || null,
+        teamId: newTaskData.teamId,
+        createdById: "temp", // Will be replaced by server response
+        assignedToId: newTaskData.assignedToId || "temp",
+        dueDate: newTaskData.dueDate ? new Date(newTaskData.dueDate) : null,
+        completed: newTaskData.completed || false,
+        completedAt: newTaskData.completed ? new Date() : null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Optimistically update the cache
+      queryClient.setQueryData(["tasks"], (old: any) => {
+        if (!old?.tasks) return { tasks: [optimisticTask] };
+
+        return {
+          ...old,
+          tasks: [optimisticTask, ...old.tasks], // Add to the beginning for newest first
+        };
+      });
+
+      // Return a context with the snapshotted value
+      return { previousTasks };
+    },
+    onError: (err, newTaskData, context) => {
+      // If the mutation fails, use the context to roll back
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+      console.error("Error creating task:", err);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch to get the actual task with real ID from server
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+};
+
+export const useUpdateTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateTask,
+    onMutate: async (newTask) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+      // Snapshot the previous value
+      const previousTasks = queryClient.getQueryData(["tasks"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["tasks"], (old: any) => {
+        if (!old?.tasks) return old;
+
+        return {
+          ...old,
+          tasks: old.tasks.map((task: any) =>
+            task.id === newTask.id
+              ? { ...task, ...newTask, updatedAt: new Date().toISOString() }
+              : task
+          ),
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousTasks };
+    },
+    onError: (err, newTask, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+      console.error("Error updating task:", err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+};
+
+export const useDeleteTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      // Invalidate and refetch tasks when a task is deleted
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting task:", error);
+    },
+  });
+};
+
+export const useDuplicateTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: duplicateTask,
+    onSuccess: () => {
+      // Invalidate and refetch tasks when a task is duplicated
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (error) => {
+      console.error("Error duplicating task:", error);
+    },
+  });
+};
+
+export const useTeams = () => {
+  return useQuery({
+    queryKey: ["teams"],
+    queryFn: getTeams,
+    staleTime: 1000 * 60 * 10, // 10 minutes
+  });
+};
+
+export const useTasks = (params?: { teamId?: number; completed?: boolean }) => {
+  return useQuery({
+    queryKey: ["tasks", params],
+    queryFn: () => getTasks(params),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};

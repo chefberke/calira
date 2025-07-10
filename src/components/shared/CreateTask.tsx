@@ -16,25 +16,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-
-// Validation schema
-const createTaskSchema = z.object({
-  task: z
-    .string()
-    .min(1, "Task cannot be empty")
-    .max(200, "Task must be less than 200 characters"),
-  completed: z.boolean(),
-  list: z.string().optional(),
-  dueDate: z.date().optional(),
-});
-
-type CreateTaskFormData = z.infer<typeof createTaskSchema>;
+import { useCreateTask, useTeams } from "@/lib/hooks/useTasks";
 
 function CreateTask() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,26 +27,21 @@ function CreateTask() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isListSelectorOpen, setIsListSelectorOpen] = useState(false);
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false);
+  const [title, setTitle] = useState("");
+  const [completed, setCompleted] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState("");
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    reset,
-  } = useForm<CreateTaskFormData>({
-    resolver: zodResolver(createTaskSchema),
-    defaultValues: {
-      completed: false,
-      list: "none",
-    },
-  });
+  const { data: teamsData, isLoading: teamsLoading } = useTeams();
+  const createTaskMutation = useCreateTask();
 
-  const completedValue = watch("completed");
-  const listValue = watch("list");
+  const teams = teamsData?.teams || [];
+  const homeTeam = teams.find((team) => team.name.toLowerCase() === "home");
 
-  // Auto-close focus when all dropdowns are closed
+  useEffect(() => {
+    if (homeTeam && selectedTeamId === "") {
+      setSelectedTeamId(homeTeam.id.toString());
+    }
+  }, [homeTeam, selectedTeamId]);
   useEffect(() => {
     if (isFocused && !isDatePickerOpen && !isListSelectorOpen) {
       const timer = setTimeout(() => {
@@ -77,21 +56,33 @@ function CreateTask() {
     }
   }, [isFocused, isDatePickerOpen, isListSelectorOpen]);
 
-  const onSubmit = async (data: CreateTaskFormData) => {
+  const onSubmit = async () => {
     try {
-      console.log("New task:", data);
-      // TODO: Add task creation logic here
-      reset({
-        completed: false,
-        list: "none",
+      if (!homeTeam || !title || title.trim() === "") {
+        return;
+      }
+
+      const targetTeamId =
+        selectedTeamId && selectedTeamId !== ""
+          ? parseInt(selectedTeamId)
+          : homeTeam.id;
+
+      await createTaskMutation.mutateAsync({
+        title: title.trim(),
+        teamId: targetTeamId,
+        completed,
+        dueDate: selectedDate?.toISOString(),
       });
+
+      setTitle("");
+      setCompleted(false);
+      setSelectedTeamId(homeTeam.id.toString());
       setSelectedDate(undefined);
-      // Keep focus after submit
       setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
     } catch (error) {
-      console.error("Error creating task:", error);
+      // Handle errors silently for now
     }
   };
 
@@ -101,29 +92,22 @@ function CreateTask() {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    setValue("dueDate", date);
     setIsDatePickerOpen(false);
-    // Refocus input after date selection
     setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
   };
 
-  // Mock lists data - replace with real data
-  const lists = [
-    { id: "none", name: "No list" },
-    { id: "personal", name: "Personal" },
-    { id: "work", name: "Work" },
-    { id: "shopping", name: "Shopping" },
-  ];
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit();
+  };
 
   return (
     <div className="w-full max-w-2xl">
-      <form onSubmit={handleSubmit(onSubmit)} className="relative">
+      <form onSubmit={handleFormSubmit} className="relative">
         <div className="flex items-center">
-          {/* Input Container */}
           <div className="relative flex-1 flex items-center">
-            {/* Animated Checkbox */}
             <AnimatePresence>
               {isFocused && (
                 <motion.div
@@ -145,10 +129,10 @@ function CreateTask() {
                     className="flex items-center"
                   >
                     <Checkbox
-                      checked={completedValue}
+                      checked={completed}
                       onCheckedChange={(checked) => {
                         setIsCheckboxAnimating(true);
-                        setValue("completed", checked as boolean);
+                        setCompleted(checked as boolean);
                         setTimeout(() => setIsCheckboxAnimating(false), 200);
                       }}
                       className="w-5 h-5 border-none bg-neutral-200 data-[state=checked]:bg-neutral-700"
@@ -159,15 +143,15 @@ function CreateTask() {
             </AnimatePresence>
 
             <Input
-              {...register("task")}
               ref={inputRef}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="Write a new task"
               className={`h-14 rounded-2xl bg-gray-300/50 border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:border-none font-medium transition-all duration-200 ${
                 isFocused ? "pl-14 pr-80" : "pl-4 pr-24"
               }`}
               onFocus={() => setIsFocused(true)}
               onBlur={() => {
-                // Only close if no dropdowns are open
                 setTimeout(() => {
                   if (!isDatePickerOpen && !isListSelectorOpen) {
                     setIsFocused(false);
@@ -175,13 +159,14 @@ function CreateTask() {
                 }, 100);
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSubmit(onSubmit)();
+                if (e.key === "Enter" && !createTaskMutation.isPending) {
+                  e.preventDefault();
+                  onSubmit();
                 }
               }}
+              disabled={createTaskMutation.isPending}
             />
 
-            {/* Right Side Controls */}
             <div className="absolute right-3 flex items-center gap-2">
               <AnimatePresence mode="wait">
                 {isFocused ? (
@@ -193,12 +178,10 @@ function CreateTask() {
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     className="flex items-center gap-2"
                   >
-                    {/* Date Picker */}
                     <Popover
                       open={isDatePickerOpen}
                       onOpenChange={(open) => {
                         setIsDatePickerOpen(open);
-                        // If closing the popover, refocus input
                         if (!open) {
                           setTimeout(() => {
                             inputRef.current?.focus();
@@ -230,13 +213,11 @@ function CreateTask() {
                       </PopoverContent>
                     </Popover>
 
-                    {/* List Selector */}
                     <Select
-                      value={listValue}
-                      onValueChange={(value) => setValue("list", value)}
+                      value={selectedTeamId}
+                      onValueChange={(value) => setSelectedTeamId(value)}
                       onOpenChange={(open) => {
                         setIsListSelectorOpen(open);
-                        // If closing the select, refocus input
                         if (!open) {
                           setTimeout(() => {
                             inputRef.current?.focus();
@@ -247,25 +228,60 @@ function CreateTask() {
                       <SelectTrigger
                         className="w-28 h-8 bg-neutral-100 border border-neutral-200 text-xs cursor-pointer"
                         onMouseDown={(e) => e.preventDefault()}
+                        disabled={teamsLoading}
                       >
-                        <SelectValue />
+                        <SelectValue
+                          placeholder={teamsLoading ? "Loading..." : "No list"}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {lists.map((list) => (
-                          <SelectItem key={list.id} value={list.id}>
+                        {homeTeam && (
+                          <SelectItem value={homeTeam.id.toString()}>
                             <div className="flex items-center gap-2">
-                              {list.id === "none" && (
-                                <Image
-                                  src="/mini.svg"
-                                  alt="No list"
-                                  width={10}
-                                  height={10}
-                                />
-                              )}
-                              {list.name}
+                              <Image
+                                src="/mini.svg"
+                                alt="No list"
+                                width={10}
+                                height={10}
+                              />
+                              No list
                             </div>
                           </SelectItem>
-                        ))}
+                        )}
+
+                        {teams
+                          .filter((team) => team.name.toLowerCase() !== "home")
+                          .map((team) => {
+                            const getTeamIcon = () => {
+                              const teamNameLower = team.name.toLowerCase();
+                              if (teamNameLower === "today") {
+                                return (
+                                  <Image
+                                    src="/calendar.svg"
+                                    alt="Today"
+                                    width={12}
+                                    height={12}
+                                  />
+                                );
+                              } else {
+                                return (
+                                  <span className="text-sm">{team.emoji}</span>
+                                );
+                              }
+                            };
+
+                            return (
+                              <SelectItem
+                                key={team.id}
+                                value={team.id.toString()}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {getTeamIcon()}
+                                  {team.name}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                       </SelectContent>
                     </Select>
                   </motion.div>
@@ -292,12 +308,6 @@ function CreateTask() {
             </div>
           </div>
         </div>
-
-        {errors.task && (
-          <span className="text-neutral-500 text-xs mt-1 block ml-3">
-            {errors.task.message}
-          </span>
-        )}
       </form>
     </div>
   );

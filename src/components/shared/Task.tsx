@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import { format } from "date-fns";
+import { useUpdateTask, useTeams } from "@/lib/hooks/useTasks";
 
 // VisuallyHidden component for accessibility
 const VisuallyHidden = ({ children }: { children: React.ReactNode }) => (
@@ -58,6 +59,9 @@ interface TaskProps {
   dueDate?: string;
   category?: string;
   categoryIcon?: string;
+  categoryEmoji?: string;
+  description?: string;
+  teamId?: number;
   onToggleComplete?: (id: string, completed: boolean) => void;
   onEdit?: (id: string) => void;
   onDuplicate?: (id: string) => void;
@@ -68,14 +72,28 @@ function Task({
   id = "1",
   title = "Complete project documentation",
   completed = false,
-  dueDate = "10 Mar",
+  dueDate,
   category = "No list",
   categoryIcon = "/mini.svg",
+  categoryEmoji,
+  description = "",
+  teamId,
   onToggleComplete,
   onEdit,
   onDuplicate,
   onDelete,
 }: TaskProps) {
+  // Helper function to safely parse date
+  const parseSafeDate = (dateString?: string): Date | undefined => {
+    if (!dateString) return undefined;
+    try {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? undefined : date;
+    } catch {
+      return undefined;
+    }
+  };
+
   const [isCompleted, setIsCompleted] = useState(completed);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
@@ -83,48 +101,152 @@ function Task({
   // Edit sheet states
   const [editTitle, setEditTitle] = useState(title);
   const [editCompleted, setEditCompleted] = useState(completed);
-  const [editList, setEditList] = useState("personal");
+  const [editTeamId, setEditTeamId] = useState<string>("no-list");
   const [editDate, setEditDate] = useState<Date | undefined>(
-    dueDate ? new Date() : undefined
+    parseSafeDate(dueDate)
   );
-  const [editNotes, setEditNotes] = useState(
-    "This is a sample note for the task. You can edit this."
-  );
+  const [editNotes, setEditNotes] = useState(description || "");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // Mock lists data
-  const lists = [
-    { id: "none", name: "No list" },
-    { id: "personal", name: "Personal" },
-    { id: "work", name: "Work" },
-    { id: "shopping", name: "Shopping" },
-  ];
+  // Local category states for immediate UI updates
+  const [currentCategory, setCurrentCategory] = useState(category);
+  const [currentCategoryIcon, setCurrentCategoryIcon] = useState(categoryIcon);
+  const [currentCategoryEmoji, setCurrentCategoryEmoji] =
+    useState(categoryEmoji);
 
-  const handleEdit = () => {
-    // Reset edit values to current task values
+  // Hooks
+  const updateTaskMutation = useUpdateTask();
+  const { data: teamsData, isLoading: teamsLoading } = useTeams();
+
+  const teams = teamsData?.teams || [];
+
+  // Helper function to get team info for category display
+  const getTeamDisplayInfo = (teamIdString: string) => {
+    if (teamIdString === "no-list") {
+      return {
+        name: "No list",
+        icon: "/mini.svg",
+        emoji: undefined,
+      };
+    }
+
+    const team = teams.find((t) => t.id.toString() === teamIdString);
+    if (!team) {
+      return {
+        name: "No list",
+        icon: "/mini.svg",
+        emoji: undefined,
+      };
+    }
+
+    const teamNameLower = team.name.toLowerCase();
+
+    // Today team uses calendar icon
+    if (teamNameLower === "today") {
+      return {
+        name: team.name,
+        icon: "/calendar.svg",
+        emoji: undefined,
+      };
+    }
+
+    // Other teams use their emoji or default icon
+    return {
+      name: team.name,
+      icon: team.emoji ? undefined : "/mini.svg",
+      emoji: team.emoji,
+    };
+  };
+
+  // Helper function to get correct team ID for edit
+  const getEditTeamId = (taskTeamId?: number): string => {
+    if (!taskTeamId) return "no-list";
+
+    const team = teams.find((t) => t.id === taskTeamId);
+    if (!team || team.name.toLowerCase() === "home") {
+      return "no-list";
+    }
+    return taskTeamId.toString();
+  };
+
+  // Update category display when editTeamId changes
+  useEffect(() => {
+    const teamInfo = getTeamDisplayInfo(editTeamId);
+    setCurrentCategory(teamInfo.name || "No list");
+    setCurrentCategoryIcon(teamInfo.icon || "/mini.svg");
+    setCurrentCategoryEmoji(teamInfo.emoji || undefined);
+  }, [editTeamId, teams]);
+
+  // Initialize edit values when props change
+  useEffect(() => {
     setEditTitle(title || "");
     setEditCompleted(completed || false);
-    setEditDate(dueDate ? new Date() : undefined);
+    setEditTeamId(getEditTeamId(teamId));
+    setEditDate(parseSafeDate(dueDate));
+    setEditNotes(description || "");
+  }, [title, completed, teamId, dueDate, description, teams]);
+
+  // Initialize category states when props change
+  useEffect(() => {
+    setCurrentCategory(category || "No list");
+    setCurrentCategoryIcon(categoryIcon || "/mini.svg");
+    setCurrentCategoryEmoji(categoryEmoji);
+  }, [category, categoryIcon, categoryEmoji]);
+
+  const handleEdit = () => {
     setIsEditSheetOpen(true);
     onEdit?.(id);
   };
 
-  // Auto-save changes (simulated)
-  const handleAutoSave = () => {
-    // Simulate auto-save
-    console.log("Auto-saving task:", {
-      id,
-      title: editTitle,
-      completed: editCompleted,
-      list: editList,
-      dueDate: editDate,
-      notes: editNotes,
-    });
+  // Auto-save changes with real API call
+  const handleAutoSave = useCallback(async () => {
+    try {
+      if (!id || id === "1") return; // Skip for default/demo tasks
 
-    // Update main task state
-    setIsCompleted(editCompleted);
-    // In real app, you would call an API here
-  };
+      const updateData = {
+        id: parseInt(id),
+        title: editTitle,
+        completed: editCompleted,
+        teamId:
+          editTeamId && editTeamId !== "no-list"
+            ? parseInt(editTeamId)
+            : undefined,
+        dueDate: editDate?.toISOString(),
+        description: editNotes,
+      };
+
+      await updateTaskMutation.mutateAsync(updateData);
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  }, [
+    id,
+    editTitle,
+    editCompleted,
+    editTeamId,
+    editDate,
+    editNotes,
+    updateTaskMutation,
+  ]);
+
+  // Update main task state when editCompleted changes
+  useEffect(() => {
+    if (isEditSheetOpen) {
+      setIsCompleted(editCompleted);
+    }
+  }, [editCompleted, isEditSheetOpen]);
+
+  // Auto-save on changes with shorter debounce
+  useEffect(() => {
+    if (!isEditSheetOpen) return;
+
+    // Debounced API call
+    const timer = setTimeout(() => {
+      handleAutoSave();
+    }, 300); // Reduced to 300ms for faster response
+
+    return () => clearTimeout(timer);
+  }, [handleAutoSave, isEditSheetOpen]);
 
   return (
     <>
@@ -172,17 +294,37 @@ function Task({
                 : "group-hover:opacity-0 group-hover:translate-x-2"
             }`}
           >
-            <span className="text-sm text-neutral-600 font-medium bg-neutral-200 px-2 py-1 rounded-lg">
-              {dueDate}
-            </span>
+            {dueDate && (
+              <span className="text-sm text-neutral-600 font-medium bg-neutral-200 px-2 py-1 rounded-lg">
+                {(() => {
+                  try {
+                    const date = new Date(dueDate);
+                    return isNaN(date.getTime())
+                      ? dueDate
+                      : date.toLocaleDateString("tr-TR", {
+                          day: "numeric",
+                          month: "short",
+                        });
+                  } catch {
+                    return dueDate;
+                  }
+                })()}
+              </span>
+            )}
             <div className="flex items-center gap-2">
-              <Image
-                src={categoryIcon}
-                alt={category}
-                width={16}
-                height={16}
-                className="opacity-60"
-              />
+              {currentCategoryEmoji ? (
+                <span className="text-base opacity-60">
+                  {currentCategoryEmoji}
+                </span>
+              ) : (
+                <Image
+                  src={currentCategoryIcon}
+                  alt={currentCategory}
+                  width={16}
+                  height={16}
+                  className="opacity-60"
+                />
+              )}
             </div>
           </div>
 
@@ -277,9 +419,11 @@ function Task({
               <Checkbox
                 checked={editCompleted}
                 onCheckedChange={(checked) => {
-                  setEditCompleted(checked as boolean);
-                  // Auto-save on checkbox change
-                  setTimeout(handleAutoSave, 100);
+                  const newCompleted = checked as boolean;
+                  setEditCompleted(newCompleted);
+                  setIsCompleted(newCompleted);
+                  // Also trigger the parent callback
+                  onToggleComplete?.(id, newCompleted);
                 }}
                 className="w-5 h-5 border-none bg-neutral-200 data-[state=checked]:bg-neutral-700 shrink-0"
               />
@@ -298,26 +442,31 @@ function Task({
                 <label className="text-sm font-medium text-neutral-700 mb-2 block">
                   List
                 </label>
-                <Select value={editList} onValueChange={setEditList}>
+                <Select value={editTeamId} onValueChange={setEditTeamId}>
                   <SelectTrigger className="w-full h-10 bg-neutral-50 border border-neutral-200 rounded-lg">
-                    <SelectValue />
+                    <SelectValue placeholder="Select a list" />
                   </SelectTrigger>
                   <SelectContent>
-                    {lists.map((list) => (
-                      <SelectItem key={list.id} value={list.id}>
-                        <div className="flex items-center gap-2">
-                          {list.id === "none" && (
-                            <Image
-                              src="/mini.svg"
-                              alt="No list"
-                              width={10}
-                              height={10}
-                            />
-                          )}
-                          {list.name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="no-list">
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src="/mini.svg"
+                          alt="No list"
+                          width={10}
+                          height={10}
+                        />
+                        No list
+                      </div>
+                    </SelectItem>
+                    {teams
+                      .filter((team) => team.name.toLowerCase() !== "home")
+                      .map((team) => (
+                        <SelectItem key={team.id} value={team.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            {team.name}
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -333,7 +482,9 @@ function Task({
                 >
                   <PopoverTrigger asChild>
                     <button className="w-full h-10 bg-neutral-50 border border-neutral-200 rounded-lg px-3 flex items-center justify-between text-sm text-left">
-                      {editDate ? format(editDate, "PPP") : "Select date"}
+                      {editDate && !isNaN(editDate.getTime())
+                        ? format(editDate, "PPP")
+                        : "Select date"}
                       <Image
                         src="/calendar.svg"
                         alt="Calendar"
