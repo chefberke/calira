@@ -61,10 +61,31 @@ export async function GET(request: NextRequest) {
         )
       );
 
+    // Get task counts for each team (excluding Home and Today)
+    const teamCounts: { [key: number]: number } = {};
+
+    for (const team of userTeams) {
+      if (team.name !== "Home") {
+        const teamCountResult = await db
+          .select({ count: count() })
+          .from(tasks)
+          .where(
+            and(
+              eq(tasks.createdById, session.user.id),
+              eq(tasks.teamId, team.id),
+              eq(tasks.completed, false)
+            )
+          );
+
+        teamCounts[team.id] = teamCountResult[0]?.count || 0;
+      }
+    }
+
     return NextResponse.json({
       counts: {
         home: homeCountResult[0]?.count || 0,
         today: todayCountResult[0]?.count || 0,
+        teams: teamCounts,
       },
     });
   } catch (error) {

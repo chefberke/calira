@@ -21,7 +21,7 @@ import Image from "next/image";
 import { useCreateTask, useTeams } from "@/lib/hooks/useTasks";
 
 interface CreateTaskProps {
-  defaultTeam?: "home" | "today";
+  defaultTeam?: "home" | "today" | string;
 }
 
 function CreateTask({ defaultTeam = "home" }: CreateTaskProps) {
@@ -46,6 +46,22 @@ function CreateTask({ defaultTeam = "home" }: CreateTaskProps) {
     if (teams.length > 0 && selectedTeamId === "") {
       if (defaultTeam === "today" && todayTeam) {
         setSelectedTeamId(todayTeam.id.toString());
+      } else if (defaultTeam === "home" && homeTeam) {
+        setSelectedTeamId(homeTeam.id.toString());
+      } else if (
+        defaultTeam &&
+        defaultTeam !== "home" &&
+        defaultTeam !== "today"
+      ) {
+        // Handle specific team ID
+        const targetTeam = teams.find(
+          (team) => team.id.toString() === defaultTeam
+        );
+        if (targetTeam) {
+          setSelectedTeamId(targetTeam.id.toString());
+        } else if (homeTeam) {
+          setSelectedTeamId(homeTeam.id.toString());
+        }
       } else if (homeTeam) {
         setSelectedTeamId(homeTeam.id.toString());
       }

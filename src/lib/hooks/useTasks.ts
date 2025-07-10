@@ -12,6 +12,17 @@ export interface CreateTaskRequest {
   completed?: boolean;
 }
 
+export interface CreateTeamRequest {
+  name: string;
+  description?: string;
+  emoji?: string;
+}
+
+export interface CreateTeamResponse {
+  message: string;
+  team: Team;
+}
+
 export interface UpdateTaskRequest {
   id: number;
   title?: string;
@@ -48,6 +59,7 @@ export interface TaskCountsResponse {
   counts: {
     home: number;
     today: number;
+    teams: { [key: number]: number };
   };
 }
 
@@ -120,6 +132,25 @@ const duplicateTask = async (
   };
 
   return createTask(duplicateData);
+};
+
+const createTeam = async (
+  data: CreateTeamRequest
+): Promise<CreateTeamResponse> => {
+  const response = await fetch("/api/teams", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create team");
+  }
+
+  return response.json();
 };
 
 const getTeams = async (): Promise<TeamsResponse> => {
@@ -330,5 +361,20 @@ export const useTaskCounts = () => {
     queryKey: ["taskCounts"],
     queryFn: getTaskCounts,
     staleTime: 1000 * 60 * 2, // 2 minutes - more frequent updates for counts
+  });
+};
+
+export const useCreateTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTeam,
+    onSuccess: () => {
+      // Invalidate and refetch teams when a team is created
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+    onError: (error) => {
+      console.error("Error creating team:", error);
+    },
   });
 };

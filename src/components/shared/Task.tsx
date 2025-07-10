@@ -313,7 +313,7 @@ function Task({
             )}
             <div className="flex items-center gap-2">
               {currentCategoryEmoji ? (
-                <span className="text-base opacity-60">
+                <span className="text-base opacity-90">
                   {currentCategoryEmoji}
                 </span>
               ) : (
@@ -463,6 +463,16 @@ function Task({
                       .map((team) => (
                         <SelectItem key={team.id} value={team.id.toString()}>
                           <div className="flex items-center gap-2">
+                            {team.emoji ? (
+                              <span className="text-sm">{team.emoji}</span>
+                            ) : (
+                              <Image
+                                src="/mini.svg"
+                                alt={team.name}
+                                width={10}
+                                height={10}
+                              />
+                            )}
                             {team.name}
                           </div>
                         </SelectItem>
