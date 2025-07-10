@@ -1,5 +1,19 @@
 import React, { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +29,27 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Image from "next/image";
+import { format } from "date-fns";
+
+// VisuallyHidden component for accessibility
+const VisuallyHidden = ({ children }: { children: React.ReactNode }) => (
+  <span
+    style={{
+      position: "absolute",
+      border: 0,
+      width: 1,
+      height: 1,
+      padding: 0,
+      margin: -1,
+      overflow: "hidden",
+      clip: "rect(0, 0, 0, 0)",
+      whiteSpace: "nowrap",
+      wordWrap: "normal",
+    }}
+  >
+    {children}
+  </span>
+);
 
 interface TaskProps {
   id?: string;
@@ -45,15 +80,56 @@ function Task({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
+  // Edit sheet states
+  const [editTitle, setEditTitle] = useState(title);
+  const [editCompleted, setEditCompleted] = useState(completed);
+  const [editList, setEditList] = useState("personal");
+  const [editDate, setEditDate] = useState<Date | undefined>(
+    dueDate ? new Date() : undefined
+  );
+  const [editNotes, setEditNotes] = useState(
+    "This is a sample note for the task. You can edit this."
+  );
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Mock lists data
+  const lists = [
+    { id: "none", name: "No list" },
+    { id: "personal", name: "Personal" },
+    { id: "work", name: "Work" },
+    { id: "shopping", name: "Shopping" },
+  ];
+
   const handleEdit = () => {
+    // Reset edit values to current task values
+    setEditTitle(title || "");
+    setEditCompleted(completed || false);
+    setEditDate(dueDate ? new Date() : undefined);
     setIsEditSheetOpen(true);
     onEdit?.(id);
+  };
+
+  // Auto-save changes (simulated)
+  const handleAutoSave = () => {
+    // Simulate auto-save
+    console.log("Auto-saving task:", {
+      id,
+      title: editTitle,
+      completed: editCompleted,
+      list: editList,
+      dueDate: editDate,
+      notes: editNotes,
+    });
+
+    // Update main task state
+    setIsCompleted(editCompleted);
+    // In real app, you would call an API here
   };
 
   return (
     <>
       <div className="w-full max-w-2xl pt-2.5">
-        <div className="group flex items-center justify-between h-14 bg-neutral-100 rounded-2xl border-none px-4 font-medium transition-all duration-300 hover:bg-neutral-100 cursor-pointer">
+        <div className="group flex items-center justify-between h-14 bg-neutral-100 rounded-2xl border-none pl-3 pr-2 font-medium transition-all duration-300 hover:bg-neutral-100 cursor-pointer">
           {/* Left side - Checkbox and Task Title */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Checkbox
@@ -180,20 +256,121 @@ function Task({
           side="right"
           className="bg-transparent border-0 shadow-none w-auto h-full p-8 flex flex-col [&>button]:hidden outline-none focus:outline-none ring-0 focus:ring-0"
         >
-          <div className="w-[520px] h-full bg-white rounded-2xl shadow-sm border border-neutral-100 p-6 flex flex-col">
-            <SheetHeader className="p-0 pb-6">
-              <SheetTitle className="text-neutral-900 font-semibold text-lg">
-                Edit Task
-              </SheetTitle>
-              <SheetDescription className="text-neutral-600 text-sm">
-                Make changes to your task here. Click save when you're done.
-              </SheetDescription>
-            </SheetHeader>
-            {/* Sheet içeriği daha sonra eklenecek */}
+          <div className="w-[520px] h-full bg-white rounded-2xl shadow-sm border border-neutral-100 p-6 flex flex-col relative">
+            {/* Hidden title for accessibility */}
+            <VisuallyHidden>
+              <SheetTitle>Edit Task</SheetTitle>
+            </VisuallyHidden>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setIsEditSheetOpen(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center"
+            >
+              <span className="text-neutral-600 text-lg font-normal leading-none">
+                ×
+              </span>
+            </button>
+
+            {/* Task Title with Checkbox */}
+            <div className="flex items-center gap-3 mb-6 pr-12">
+              <Checkbox
+                checked={editCompleted}
+                onCheckedChange={(checked) => {
+                  setEditCompleted(checked as boolean);
+                  // Auto-save on checkbox change
+                  setTimeout(handleAutoSave, 100);
+                }}
+                className="w-5 h-5 border-none bg-neutral-200 data-[state=checked]:bg-neutral-700 shrink-0"
+              />
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="text-lg font-medium bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 p-0 h-auto shadow-none"
+                placeholder="Task title"
+              />
+            </div>
+
+            {/* List Selector and Due Date - Side by Side */}
+            <div className="flex gap-4 mb-6">
+              {/* List Selector */}
+              <div className="flex-1">
+                <label className="text-sm font-medium text-neutral-700 mb-2 block">
+                  List
+                </label>
+                <Select value={editList} onValueChange={setEditList}>
+                  <SelectTrigger className="w-full h-10 bg-neutral-50 border border-neutral-200 rounded-lg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lists.map((list) => (
+                      <SelectItem key={list.id} value={list.id}>
+                        <div className="flex items-center gap-2">
+                          {list.id === "none" && (
+                            <Image
+                              src="/mini.svg"
+                              alt="No list"
+                              width={10}
+                              height={10}
+                            />
+                          )}
+                          {list.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Due Date */}
+              <div className="flex-1">
+                <label className="text-sm font-medium text-neutral-700 mb-2 block">
+                  Due Date
+                </label>
+                <Popover
+                  open={isDatePickerOpen}
+                  onOpenChange={setIsDatePickerOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <button className="w-full h-10 bg-neutral-50 border border-neutral-200 rounded-lg px-3 flex items-center justify-between text-sm text-left">
+                      {editDate ? format(editDate, "PPP") : "Select date"}
+                      <Image
+                        src="/calendar.svg"
+                        alt="Calendar"
+                        width={16}
+                        height={16}
+                        className="opacity-60"
+                      />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editDate}
+                      onSelect={(date) => {
+                        setEditDate(date);
+                        setIsDatePickerOpen(false);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Notes Section */}
             <div className="flex-1">
-              <p className="text-sm text-neutral-600">
-                Task edit form will be implemented here...
-              </p>
+              <label className="text-sm font-medium text-neutral-700 mb-2 block">
+                Notes
+              </label>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 h-48">
+                <textarea
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Add notes..."
+                  className="w-full h-full bg-transparent border-none outline-none resize-none text-sm text-neutral-700 placeholder:text-neutral-500"
+                />
+              </div>
             </div>
           </div>
         </SheetContent>
