@@ -81,13 +81,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const result = {
       counts: {
         home: homeCountResult[0]?.count || 0,
         today: todayCountResult[0]?.count || 0,
         teams: teamCounts,
       },
-    });
+    };
+
+    console.log("📊 API Task counts result:", result);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching task counts:", error);
     return NextResponse.json(

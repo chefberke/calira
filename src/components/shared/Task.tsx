@@ -206,7 +206,7 @@ function Task({
       const updateData = {
         id: parseInt(id),
         title: editTitle,
-        completed: editCompleted,
+        // Don't include completed in auto-save since checkboxes handle it directly
         teamId:
           editTeamId && editTeamId !== "no-list"
             ? parseInt(editTeamId)
@@ -222,7 +222,7 @@ function Task({
   }, [
     id,
     editTitle,
-    editCompleted,
+    // Remove editCompleted from dependencies to avoid auto-save on completion change
     editTeamId,
     editDate,
     editNotes,
@@ -257,8 +257,21 @@ function Task({
             <Checkbox
               checked={isCompleted}
               onCheckedChange={(checked) => {
-                setIsCompleted(checked as boolean);
-                onToggleComplete?.(id, checked as boolean);
+                const newCompleted = checked as boolean;
+                setIsCompleted(newCompleted);
+
+                console.log("🔄 Main checkbox clicked:", { id, newCompleted });
+
+                // Immediately update the task via API call
+                if (id && id !== "1") {
+                  updateTaskMutation.mutate({
+                    id: parseInt(id),
+                    completed: newCompleted,
+                  });
+                }
+
+                // Also call the parent callback for any additional handling
+                onToggleComplete?.(id, newCompleted);
               }}
               className={`w-5 h-5 border-none bg-neutral-200 data-[state=checked]:bg-neutral-700 shrink-0 transition-all duration-300 ease-out transform ${
                 isCompleted ? "scale-110" : "scale-100 hover:scale-105"
@@ -422,6 +435,15 @@ function Task({
                   const newCompleted = checked as boolean;
                   setEditCompleted(newCompleted);
                   setIsCompleted(newCompleted);
+
+                  // Immediately update the task via API call
+                  if (id && id !== "1") {
+                    updateTaskMutation.mutate({
+                      id: parseInt(id),
+                      completed: newCompleted,
+                    });
+                  }
+
                   // Also trigger the parent callback
                   onToggleComplete?.(id, newCompleted);
                 }}

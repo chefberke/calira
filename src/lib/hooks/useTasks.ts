@@ -266,6 +266,8 @@ export const useUpdateTask = () => {
   return useMutation({
     mutationFn: updateTask,
     onMutate: async (newTask) => {
+      console.log("🔄 Update task onMutate:", newTask);
+
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
@@ -290,14 +292,18 @@ export const useUpdateTask = () => {
       return { previousTasks };
     },
     onError: (err, newTask, context) => {
+      console.error("❌ Update task error:", err);
+
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousTasks) {
         queryClient.setQueryData(["tasks"], context.previousTasks);
       }
       console.error("Error updating task:", err);
     },
-    onSettled: () => {
-      // Always refetch after error or success to ensure consistency
+    onSuccess: () => {
+      console.log("✅ Update task success - invalidating queries");
+
+      // Invalidate queries only on success to ensure counts are updated correctly
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
@@ -359,7 +365,12 @@ export const useTasks = (params?: {
 export const useTaskCounts = () => {
   return useQuery({
     queryKey: ["taskCounts"],
-    queryFn: getTaskCounts,
+    queryFn: async () => {
+      console.log("📊 Fetching task counts...");
+      const result = await getTaskCounts();
+      console.log("📊 Task counts result:", result);
+      return result;
+    },
     staleTime: 1000 * 60 * 2, // 2 minutes - more frequent updates for counts
   });
 };

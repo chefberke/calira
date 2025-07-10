@@ -63,14 +63,9 @@ function Tasks({ teamId, showCompleted = true, today = false }: TasksProps) {
   };
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
-    try {
-      await updateTaskMutation.mutateAsync({
-        id: parseInt(id),
-        completed,
-      });
-    } catch (error) {
-      console.error("Error toggling task completion:", error);
-    }
+    // This function is now primarily for any additional handling
+    // since Task component handles the API call directly
+    console.log("Task toggled:", id, completed);
   };
 
   const handleEdit = (id: string) => {
