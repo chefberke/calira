@@ -301,7 +301,7 @@ function Task({
                     const date = new Date(dueDate);
                     return isNaN(date.getTime())
                       ? dueDate
-                      : date.toLocaleDateString("tr-TR", {
+                      : date.toLocaleDateString("en-US", {
                           day: "numeric",
                           month: "short",
                         });

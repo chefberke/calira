@@ -10,7 +10,7 @@ export default function BoardLayout({
     <div className="relative w-full h-screen overflow-hidden">
       {/* Background blur effect */}
       <div className="absolute inset-0 w-full h-full flex items-center justify-center z-0">
-        <div className="w-[500px] h-[350px] blur-[240px] rounded-full bg-gradient-to-r from-[#08203E] to-[#6036E9] z-0"></div>
+        <div className="w-[500px] h-[350px] blur-[220px] rounded-full bg-gradient-to-r from-[#08203E] to-[#6036E9] z-0"></div>
       </div>
 
       {/* Main container */}

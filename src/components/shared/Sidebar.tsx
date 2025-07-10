@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTaskCounts } from "@/lib/hooks/useTasks";
 
 interface SidebarItem {
   id: string;
@@ -17,6 +18,11 @@ interface SidebarItem {
 
 function Sidebar() {
   const pathname = usePathname();
+  const { data: taskCounts, isLoading } = useTaskCounts();
+
+  // Get dynamic counts
+  const homeCount = taskCounts?.counts?.home || 0;
+  const todayCount = taskCounts?.counts?.today || 0;
 
   // Built-in sidebar items
   const sidebarItems: SidebarItem[] = [
@@ -33,7 +39,7 @@ function Sidebar() {
         />
       ),
       href: "/board",
-      count: 6,
+      count: homeCount > 0 ? homeCount : undefined,
       type: "navigation",
     },
     {
@@ -41,7 +47,7 @@ function Sidebar() {
       label: "Today",
       icon: (
         <Image
-          src="/clock.svg"
+          src="/calendar.svg"
           alt="Today"
           width={20}
           height={20}
@@ -49,7 +55,7 @@ function Sidebar() {
         />
       ),
       href: "/board/today",
-      count: 3,
+      count: todayCount > 0 ? todayCount : undefined,
       type: "navigation",
     },
     {

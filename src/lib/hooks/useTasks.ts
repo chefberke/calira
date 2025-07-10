@@ -44,6 +44,13 @@ export interface TasksResponse {
   tasks: Task[];
 }
 
+export interface TaskCountsResponse {
+  counts: {
+    home: number;
+    today: number;
+  };
+}
+
 // API functions
 const createTask = async (
   data: CreateTaskRequest
@@ -150,6 +157,17 @@ const getTasks = async (params?: {
   return response.json();
 };
 
+const getTaskCounts = async (): Promise<TaskCountsResponse> => {
+  const response = await fetch("/api/tasks/count");
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch task counts");
+  }
+
+  return response.json();
+};
+
 // Hooks
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
@@ -201,6 +219,7 @@ export const useCreateTask = () => {
     onSuccess: () => {
       // Invalidate and refetch to get the actual task with real ID from server
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
   });
 };
@@ -244,6 +263,7 @@ export const useUpdateTask = () => {
     onSettled: () => {
       // Always refetch after error or success to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
   });
 };
@@ -256,6 +276,7 @@ export const useDeleteTask = () => {
     onSuccess: () => {
       // Invalidate and refetch tasks when a task is deleted
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
     onError: (error) => {
       console.error("Error deleting task:", error);
@@ -271,6 +292,7 @@ export const useDuplicateTask = () => {
     onSuccess: () => {
       // Invalidate and refetch tasks when a task is duplicated
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
     onError: (error) => {
       console.error("Error duplicating task:", error);
@@ -291,5 +313,13 @@ export const useTasks = (params?: { teamId?: number; completed?: boolean }) => {
     queryKey: ["tasks", params],
     queryFn: () => getTasks(params),
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+export const useTaskCounts = () => {
+  return useQuery({
+    queryKey: ["taskCounts"],
+    queryFn: getTaskCounts,
+    staleTime: 1000 * 60 * 2, // 2 minutes - more frequent updates for counts
   });
 };
