@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { usersTable } from "@/db";
+import { teams } from "@/db/schema/teams";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -69,8 +70,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const user = newUser[0];
+
+    // Create default teams for the new user
+    try {
+      await db.insert(teams).values([
+        {
+          name: "Home",
+          description: "Your personal workspace for organizing tasks",
+          emoji: "🏠",
+          ownerId: user.id,
+        },
+        {
+          name: "Today",
+          description: "Tasks to focus on today",
+          emoji: "📅",
+          ownerId: user.id,
+        },
+      ]);
+    } catch (teamError) {
+      console.error("Failed to create default teams:", teamError);
+      // Don't fail the registration if team creation fails
+      // User can create teams manually later
+    }
+
     // Return success (don't send password back)
-    const { password: _, ...userWithoutPassword } = newUser[0];
+    const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json(
       {

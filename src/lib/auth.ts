@@ -9,6 +9,7 @@ import {
   sessions as sessionsTable,
   verificationTokens as verificationTokensTable,
 } from "@/db/schema/users";
+import { teams } from "@/db/schema/teams";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -102,6 +103,43 @@ export const {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      // If this is an OAuth sign-in (not credentials), check if user has teams and create them if they don't
+      if (account?.provider !== "credentials" && user.id) {
+        try {
+          // Check if user already has teams
+          const existingTeams = await db
+            .select()
+            .from(teams)
+            .where(eq(teams.ownerId, user.id))
+            .limit(1);
+
+          // If no teams exist, create default teams
+          if (existingTeams.length === 0) {
+            await db.insert(teams).values([
+              {
+                name: "Home",
+                description: "Your personal workspace for organizing tasks",
+                emoji: "🏠",
+                ownerId: user.id,
+              },
+              {
+                name: "Today",
+                description: "Tasks to focus on today",
+                emoji: "📅",
+                ownerId: user.id,
+              },
+            ]);
+            console.log(`Created default teams for OAuth user: ${user.email}`);
+          }
+        } catch (teamError) {
+          console.error(
+            "Failed to create default teams for OAuth user:",
+            teamError
+          );
+          // Don't fail the sign-in if team creation fails
+        }
+      }
+
       // Allow all sign-ins
       return true;
     },

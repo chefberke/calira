@@ -13,7 +13,7 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   emoji: varchar("emoji", { length: 10 }),
-  ownerId: integer("owner_id")
+  ownerId: varchar("owner_id", { length: 255 })
     .references(() => users.id)
     .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

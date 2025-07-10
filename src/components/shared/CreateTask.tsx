@@ -162,7 +162,7 @@ function CreateTask() {
               {...register("task")}
               ref={inputRef}
               placeholder="Write a new task"
-              className={`h-14 bg-neutral-100 rounded-2xl border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:border-none font-medium transition-all duration-200 ${
+              className={`h-14 rounded-2xl bg-gray-300/50 border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:border-none font-medium transition-all duration-200 ${
                 isFocused ? "pl-14 pr-80" : "pl-4 pr-24"
               }`}
               onFocus={() => setIsFocused(true)}
