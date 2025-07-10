@@ -42,6 +42,20 @@ function CreateTask() {
       setSelectedTeamId(homeTeam.id.toString());
     }
   }, [homeTeam, selectedTeamId]);
+
+  // Add keyboard event listener for Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   useEffect(() => {
     if (isFocused && !isDatePickerOpen && !isListSelectorOpen) {
       const timer = setTimeout(() => {
@@ -297,10 +311,7 @@ function CreateTask() {
                     className="flex items-center gap-1"
                   >
                     <div className="rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-600 transition-colors">
-                      ⌘
-                    </div>
-                    <div className="rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-600 transition-colors">
-                      D
+                      Esc
                     </div>
                   </motion.button>
                 )}

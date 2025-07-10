@@ -104,7 +104,11 @@ const duplicateTask = async (
     description: originalTask.description || undefined,
     teamId: originalTask.teamId,
     assignedToId: originalTask.assignedToId || undefined,
-    dueDate: originalTask.dueDate?.toISOString(),
+    dueDate: originalTask.dueDate
+      ? originalTask.dueDate instanceof Date
+        ? originalTask.dueDate.toISOString()
+        : originalTask.dueDate
+      : undefined,
     completed: false, // Always create duplicates as incomplete
   };
 

@@ -514,12 +514,12 @@ function Task({
               <label className="text-sm font-medium text-neutral-700 mb-2 block">
                 Notes
               </label>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 h-48">
+              <div className="bg-amber-50/80 border border-amber-200/60 rounded-xl p-4 h-48 transition-colors hover:bg-amber-50 focus-within:bg-amber-50 focus-within:border-amber-300/70">
                 <textarea
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   placeholder="Add notes..."
-                  className="w-full h-full bg-transparent border-none outline-none resize-none text-sm text-neutral-700 placeholder:text-neutral-500"
+                  className="w-full h-full bg-transparent border-none outline-none resize-none text-sm text-neutral-700 placeholder:text-neutral-400 transition-colors"
                 />
               </div>
             </div>

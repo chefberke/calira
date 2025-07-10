@@ -96,23 +96,19 @@ function Tasks({ teamId, showCompleted = true }: TasksProps) {
     }
   };
 
-  if (isLoading || teamsLoading) {
+  if (isLoading || teamsLoading || error) {
     return (
       <div className="w-full max-w-2xl">
         <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-neutral-500">Loading tasks...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full max-w-2xl">
-        <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-red-500">
-            Error loading tasks: {error.message}
-          </div>
+          <motion.div
+            className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-400 rounded-full"
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
         </div>
       </div>
     );
