@@ -37,6 +37,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const [selectedEmoji, setSelectedEmoji] = useState("🍎");
   const [listName, setListName] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   // Global keyboard event listener for Command+E shortcut
@@ -212,6 +213,13 @@ function Sidebar({ onNavigate }: SidebarProps) {
   };
 
   const handleCreateListClick = () => {
+    // Check if user has reached the limit of 10 teams
+    if (customTeams.length >= 10) {
+      setShowLimitWarning(true);
+      setTimeout(() => setShowLimitWarning(false), 3000); // Hide warning after 3 seconds
+      return;
+    }
+
     setIsCreateListExpanded(!isCreateListExpanded);
     if (isCreateListExpanded) {
       // Reset form when closing
@@ -238,6 +246,14 @@ function Sidebar({ onNavigate }: SidebarProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if user has reached the limit of 10 teams
+    if (customTeams.length >= 10) {
+      setShowLimitWarning(true);
+      setTimeout(() => setShowLimitWarning(false), 3000);
+      return;
+    }
+
     if (listName.trim()) {
       createTeamMutation.mutate(
         {
@@ -379,6 +395,24 @@ function Sidebar({ onNavigate }: SidebarProps) {
 
             {/* Create new list section */}
             <div className="space-y-2">
+              {/* Show warning message */}
+              <AnimatePresence>
+                {showLimitWarning && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                    transition={{
+                      duration: 0.25,
+                      ease: [0.4, 0, 0.2, 1],
+                    }}
+                    className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg text-neutral-600 text-sm"
+                  >
+                    Maximum 10 lists allowed. Delete an existing list first.
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <AnimatePresence mode="wait">
                 {!isCreateListExpanded ? (
                   <motion.button
