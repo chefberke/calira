@@ -283,8 +283,11 @@ function Task({
                 className={`truncate text-sm font-medium transition-all duration-300 ease-out ${
                   isCompleted ? "text-neutral-500" : "text-neutral-800"
                 }`}
+                title={title} // Show full title on hover
               >
-                {title}
+                {title && title.length > 45
+                  ? `${title.substring(0, 45)}...`
+                  : title}
               </span>
 
               {/* Animated strikethrough line - only covers text */}

@@ -1,13 +1,25 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useTaskCounts, useCreateTeam, useTeams } from "@/lib/hooks/useTasks";
+import {
+  useTaskCounts,
+  useCreateTeam,
+  useTeams,
+  useUpdateTeam,
+  useDeleteTeam,
+} from "@/lib/hooks/useTasks";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import data from "@emoji-mart/data";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Dynamically import emoji picker to avoid SSR issues
 const Picker = dynamic(() => import("@emoji-mart/react"), { ssr: false });
@@ -28,9 +40,12 @@ interface SidebarProps {
 
 function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: taskCounts, isLoading } = useTaskCounts();
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
   const createTeamMutation = useCreateTeam();
+  const updateTeamMutation = useUpdateTeam();
+  const deleteTeamMutation = useDeleteTeam();
 
   // State for create new list functionality
   const [isCreateListExpanded, setIsCreateListExpanded] = useState(false);
@@ -38,7 +53,15 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const [listName, setListName] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+
+  // State for edit team functionality
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+  const [editingTeamName, setEditingTeamName] = useState("");
+  const [editingTeamEmoji, setEditingTeamEmoji] = useState("🍎");
+  const [showEditEmojiPicker, setShowEditEmojiPicker] = useState(false);
+  const editFormRef = useRef<HTMLDivElement>(null);
 
   // Global keyboard event listener for Command+E shortcut
   useEffect(() => {
@@ -75,16 +98,30 @@ function Sidebar({ onNavigate }: SidebarProps) {
           setShowEmojiPicker(false);
         }
       }
+
+      // Handle edit form click outside
+      if (
+        editFormRef.current &&
+        !editFormRef.current.contains(event.target as Node) &&
+        !isEmojiPickerClick
+      ) {
+        if (editingTeamId !== null) {
+          setEditingTeamId(null);
+          setEditingTeamName("");
+          setEditingTeamEmoji("🍎");
+          setShowEditEmojiPicker(false);
+        }
+      }
     };
 
-    if (isCreateListExpanded) {
+    if (isCreateListExpanded || editingTeamId !== null) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isCreateListExpanded]);
+  }, [isCreateListExpanded, editingTeamId]);
 
   // Get dynamic counts
   const homeCount = taskCounts?.counts?.home || 0;
@@ -244,6 +281,11 @@ function Sidebar({ onNavigate }: SidebarProps) {
     setShowEmojiPicker(false);
   };
 
+  const handleEditEmojiSelect = (emoji: any) => {
+    setEditingTeamEmoji(emoji.native);
+    setShowEditEmojiPicker(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -281,6 +323,32 @@ function Sidebar({ onNavigate }: SidebarProps) {
     }
   };
 
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingTeamName.trim() && editingTeamId !== null) {
+      updateTeamMutation.mutate(
+        {
+          id: editingTeamId,
+          name: editingTeamName.trim(),
+          emoji: editingTeamEmoji,
+        },
+        {
+          onSuccess: () => {
+            // Reset form on success
+            setEditingTeamId(null);
+            setEditingTeamName("");
+            setEditingTeamEmoji("🍎");
+            setShowEditEmojiPicker(false);
+          },
+          onError: (error: Error) => {
+            console.error("Failed to update team:", error);
+          },
+        }
+      );
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsCreateListExpanded(false);
@@ -291,6 +359,79 @@ function Sidebar({ onNavigate }: SidebarProps) {
       e.preventDefault();
       handleSubmit(e as any);
     }
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setEditingTeamId(null);
+      setEditingTeamName("");
+      setEditingTeamEmoji("🍎");
+      setShowEditEmojiPicker(false);
+    } else if (e.key === "Enter" && editingTeamName.trim()) {
+      e.preventDefault();
+      handleEditSubmit(e as any);
+    }
+  };
+
+  const handleEditItem = (itemId: string) => {
+    const teamId = parseInt(itemId);
+    const team = customTeams.find((t) => t.id === teamId);
+
+    if (team) {
+      setEditingTeamId(teamId);
+      setEditingTeamName(team.name);
+      setEditingTeamEmoji(team.emoji || "📋");
+      setShowEditEmojiPicker(false);
+
+      // Focus input after animation
+      setTimeout(() => {
+        const input = editFormRef.current?.querySelector(
+          'input[type="text"]'
+        ) as HTMLInputElement;
+        if (input) {
+          input.focus();
+        }
+      }, 100);
+    }
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    const teamId = parseInt(itemId);
+
+    // Check if we're currently on the team page that's being deleted
+    const isOnTeamPage =
+      pathname === `/board/team/${teamId}` ||
+      pathname.startsWith(`/board/team/${teamId}/`);
+
+    deleteTeamMutation.mutate(teamId, {
+      onSuccess: () => {
+        // If we were on the deleted team's page, redirect to home
+        if (isOnTeamPage) {
+          router.push("/board");
+        } else {
+          // If we're on another team's page, check if that team still exists
+          const currentTeamMatch = pathname.match(/^\/board\/team\/(\d+)/);
+          if (currentTeamMatch) {
+            const currentTeamId = parseInt(currentTeamMatch[1]);
+
+            // After successful deletion, check if the current team still exists
+            // We need a slight delay to ensure the cache is updated
+            setTimeout(() => {
+              const stillExists = customTeams.some(
+                (team) => team.id === currentTeamId
+              );
+
+              if (!stillExists) {
+                router.push("/board");
+              }
+            }, 200);
+          }
+        }
+      },
+      onError: (error: Error) => {
+        console.error("Failed to delete team:", error);
+      },
+    });
   };
 
   return (
@@ -304,38 +445,100 @@ function Sidebar({ onNavigate }: SidebarProps) {
                 href={item.href}
                 className={getItemStyles(item)}
                 onClick={handleLinkClick}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={getIconStyles(item)}>{item.icon}</div>
-                  <span className="font-semibold text-sm">{item.label}</span>
+                  <span className="font-semibold text-sm truncate">
+                    {item.label}
+                  </span>
                 </div>
-                {item.count && (
-                  <div
-                    className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${getCountStyles(
-                      item
-                    )}`}
-                  >
-                    {item.count}
-                  </div>
-                )}
-                {item.shortcut && (
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
+                  {/* Only show more options for custom items (not Home/Today) */}
+                  {item.id !== "home" && item.id !== "today" && (
+                    <div className="flex items-center justify-center w-8 h-8">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className={`p-1 rounded-md hover:bg-neutral-200 transition-all duration-200 ${
+                              hoveredItem === item.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          >
+                            <Image
+                              src="/more.svg"
+                              alt="More options"
+                              width={20}
+                              height={20}
+                              className="opacity-60 hover:opacity-100 transition-opacity duration-200"
+                            />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-40 bg-white border border-neutral-200 shadow-lg rounded-xl p-1"
+                          sideOffset={8}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => handleEditItem(item.id)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg cursor-pointer transition-colors duration-200"
+                          >
+                            <Image
+                              src="/edit.svg"
+                              alt="Edit"
+                              width={16}
+                              height={16}
+                              className="opacity-60"
+                            />
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg cursor-pointer transition-colors duration-200"
+                          >
+                            <Image
+                              src="/trash.svg"
+                              alt="Delete"
+                              width={16}
+                              height={16}
+                              className="opacity-60"
+                            />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
+                  {item.count && (
                     <div
-                      className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${getShortcutStyles(
+                      className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${getCountStyles(
                         item
                       )}`}
                     >
-                      ⌘
+                      {item.count}
                     </div>
-                    <div
-                      className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${getShortcutStyles(
-                        item
-                      )}`}
-                    >
-                      E
+                  )}
+                  {item.shortcut && (
+                    <div className="flex items-center gap-1">
+                      <div
+                        className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${getShortcutStyles(
+                          item
+                        )}`}
+                      >
+                        ⌘
+                      </div>
+                      <div
+                        className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${getShortcutStyles(
+                          item
+                        )}`}
+                      >
+                        E
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </Link>
             ))}
 
@@ -353,42 +556,194 @@ function Sidebar({ onNavigate }: SidebarProps) {
                   }}
                   layout
                 >
-                  <Link
-                    href={`/board/team/${team.id}`}
-                    className={`flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group ${
-                      pathname === `/board/team/${team.id}` ||
-                      pathname.startsWith(`/board/team/${team.id}/`)
-                        ? "bg-neutral-100 text-neutral-900"
-                        : "text-neutral-800 hover:text-neutral-900"
-                    }`}
-                    onClick={handleLinkClick}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`${
-                          pathname === `/board/team/${team.id}` ||
-                          pathname.startsWith(`/board/team/${team.id}/`)
-                            ? "text-neutral-900"
-                            : "text-neutral-700 group-hover:text-neutral-900"
-                        }`}
-                      >
-                        <span className="text-lg">{team.emoji || "📋"}</span>
+                  {editingTeamId === team.id ? (
+                    /* Edit Form */
+                    <motion.div
+                      ref={editFormRef}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{
+                        duration: 0.3,
+                        ease: [0.4, 0, 0.2, 1],
+                      }}
+                      className="rounded-lg"
+                    >
+                      <form onSubmit={handleEditSubmit}>
+                        <div className="flex items-center gap-3">
+                          {/* Emoji picker button */}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowEditEmojiPicker(!showEditEmojiPicker)
+                              }
+                              className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg hover:bg-neutral-200 transition-colors text-sm"
+                            >
+                              <span>{editingTeamEmoji}</span>
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                className="text-neutral-500"
+                              >
+                                <path
+                                  d="M3 4.5L6 7.5L9 4.5"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+
+                            {/* Emoji picker dropdown */}
+                            <AnimatePresence>
+                              {showEditEmojiPicker && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.9, y: -8 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.9, y: -8 }}
+                                  transition={{
+                                    duration: 0.25,
+                                    ease: [0.4, 0, 0.2, 1],
+                                  }}
+                                  className="absolute top-12 left-0 z-[9999] shadow-xl rounded-lg border border-neutral-200 bg-white"
+                                >
+                                  <Picker
+                                    data={data}
+                                    onEmojiSelect={handleEditEmojiSelect}
+                                    theme="light"
+                                    set="native"
+                                    previewPosition="none"
+                                    skinTonePosition="none"
+                                    maxFrequentRows={2}
+                                    perLine={8}
+                                    emojiSize={20}
+                                    emojiButtonSize={32}
+                                  />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* Team name input */}
+                          <input
+                            type="text"
+                            value={editingTeamName}
+                            onChange={(e) => setEditingTeamName(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            placeholder="Team name"
+                            maxLength={50}
+                            className="placeholder:font-medium flex-1 px-3 py-2 rounded-lg border-none focus:outline-none text-sm"
+                            autoFocus
+                          />
+                        </div>
+                      </form>
+                    </motion.div>
+                  ) : (
+                    /* Normal Team Link */
+                    <Link
+                      href={`/board/team/${team.id}`}
+                      className={`flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group ${
+                        pathname === `/board/team/${team.id}` ||
+                        pathname.startsWith(`/board/team/${team.id}/`)
+                          ? "bg-neutral-100 text-neutral-900"
+                          : "text-neutral-800 hover:text-neutral-900"
+                      }`}
+                      onClick={handleLinkClick}
+                      onMouseEnter={() => setHoveredItem(team.id.toString())}
+                      onMouseLeave={() => setHoveredItem(null)}
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div
+                          className={`${
+                            pathname === `/board/team/${team.id}` ||
+                            pathname.startsWith(`/board/team/${team.id}/`)
+                              ? "text-neutral-900"
+                              : "text-neutral-700 group-hover:text-neutral-900"
+                          }`}
+                        >
+                          <span className="text-lg">{team.emoji || "📋"}</span>
+                        </div>
+                        <span className="font-semibold text-sm truncate">
+                          {team.name}
+                        </span>
                       </div>
-                      <span className="font-semibold text-sm">{team.name}</span>
-                    </div>
-                    {teamCounts[team.id] > 0 && (
-                      <div
-                        className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${
-                          pathname === `/board/team/${team.id}` ||
-                          pathname.startsWith(`/board/team/${team.id}/`)
-                            ? "bg-neutral-200 text-neutral-700"
-                            : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200 group-hover:text-neutral-700"
-                        }`}
-                      >
-                        {teamCounts[team.id]}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center w-8 h-8">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                className={`p-1 rounded-md hover:bg-neutral-200 transition-all duration-200 ${
+                                  hoveredItem === team.id.toString()
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              >
+                                <Image
+                                  src="/more.svg"
+                                  alt="More options"
+                                  width={20}
+                                  height={20}
+                                  className="opacity-60 hover:opacity-100 transition-opacity duration-200"
+                                />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-40 bg-white border border-neutral-200 shadow-lg rounded-xl p-1"
+                              sideOffset={8}
+                            >
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleEditItem(team.id.toString())
+                                }
+                                className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg cursor-pointer transition-colors duration-200"
+                              >
+                                <Image
+                                  src="/edit.svg"
+                                  alt="Edit"
+                                  width={16}
+                                  height={16}
+                                  className="opacity-60"
+                                />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleDeleteItem(team.id.toString())
+                                }
+                                className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg cursor-pointer transition-colors duration-200"
+                              >
+                                <Image
+                                  src="/trash.svg"
+                                  alt="Delete"
+                                  width={16}
+                                  height={16}
+                                  className="opacity-60"
+                                />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        {teamCounts[team.id] > 0 && (
+                          <div
+                            className={`rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium ${
+                              pathname === `/board/team/${team.id}` ||
+                              pathname.startsWith(`/board/team/${team.id}/`)
+                                ? "bg-neutral-200 text-neutral-700"
+                                : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200 group-hover:text-neutral-700"
+                            }`}
+                          >
+                            {teamCounts[team.id]}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </Link>
+                    </Link>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -527,6 +882,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
                           onChange={(e) => setListName(e.target.value)}
                           onKeyDown={handleKeyDown}
                           placeholder="List name"
+                          maxLength={50}
                           className="placeholder:font-medium flex-1 px-3 py-2 rounded-lg border-none focus:outline-none text-sm"
                           autoFocus
                         />

@@ -62,7 +62,7 @@ function TeamPage() {
                   className="w-8 h-8 sm:w-10 sm:h-10"
                 />
               )}
-              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-700">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-700 truncate max-w-xs sm:max-w-md">
                 {currentTeam.name}
               </h1>
             </div>

@@ -18,9 +18,25 @@ export interface CreateTeamRequest {
   emoji?: string;
 }
 
+export interface UpdateTeamRequest {
+  id: number;
+  name: string;
+  description?: string;
+  emoji?: string;
+}
+
 export interface CreateTeamResponse {
   message: string;
   team: Team;
+}
+
+export interface UpdateTeamResponse {
+  message: string;
+  team: Team;
+}
+
+export interface DeleteTeamResponse {
+  message: string;
 }
 
 export interface UpdateTaskRequest {
@@ -148,6 +164,38 @@ const createTeam = async (
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || "Failed to create team");
+  }
+
+  return response.json();
+};
+
+const updateTeam = async (
+  data: UpdateTeamRequest
+): Promise<UpdateTeamResponse> => {
+  const response = await fetch("/api/teams", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to update team");
+  }
+
+  return response.json();
+};
+
+const deleteTeam = async (id: number): Promise<DeleteTeamResponse> => {
+  const response = await fetch(`/api/teams?id=${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to delete team");
   }
 
   return response.json();
@@ -386,6 +434,110 @@ export const useCreateTeam = () => {
     },
     onError: (error) => {
       console.error("Error creating team:", error);
+    },
+  });
+};
+
+export const useUpdateTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateTeam,
+    onMutate: async (newTeamData) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["teams"] });
+
+      // Snapshot the previous value
+      const previousTeams = queryClient.getQueryData(["teams"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["teams"], (old: any) => {
+        if (!old?.teams) return old;
+
+        return {
+          ...old,
+          teams: old.teams.map((team: any) =>
+            team.id === newTeamData.id
+              ? { ...team, ...newTeamData, updatedAt: new Date().toISOString() }
+              : team
+          ),
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousTeams };
+    },
+    onError: (err, newTeamData, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousTeams) {
+        queryClient.setQueryData(["teams"], context.previousTeams);
+      }
+      console.error("Error updating team:", err);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch teams when a team is updated
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+};
+
+export const useDeleteTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTeam,
+    onMutate: async (teamId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["teams"] });
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      await queryClient.cancelQueries({ queryKey: ["taskCounts"] });
+
+      // Snapshot the previous values
+      const previousTeams = queryClient.getQueryData(["teams"]);
+      const previousTasks = queryClient.getQueryData(["tasks"]);
+      const previousTaskCounts = queryClient.getQueryData(["taskCounts"]);
+
+      // Optimistically update teams
+      queryClient.setQueryData(["teams"], (old: any) => {
+        if (!old?.teams) return old;
+
+        return {
+          ...old,
+          teams: old.teams.filter((team: any) => team.id !== teamId),
+        };
+      });
+
+      // Optimistically update tasks (remove tasks from this team)
+      queryClient.setQueryData(["tasks"], (old: any) => {
+        if (!old?.tasks) return old;
+
+        return {
+          ...old,
+          tasks: old.tasks.filter((task: any) => task.teamId !== teamId),
+        };
+      });
+
+      // Return a context object with the snapshotted values
+      return { previousTeams, previousTasks, previousTaskCounts };
+    },
+    onError: (err, teamId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousTeams) {
+        queryClient.setQueryData(["teams"], context.previousTeams);
+      }
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+      if (context?.previousTaskCounts) {
+        queryClient.setQueryData(["taskCounts"], context.previousTaskCounts);
+      }
+      console.error("Error deleting team:", err);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch all related queries when a team is deleted
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
   });
 };
