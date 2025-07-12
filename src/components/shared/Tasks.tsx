@@ -65,13 +65,11 @@ function Tasks({ teamId, showCompleted = true, today = false }: TasksProps) {
   const handleToggleComplete = async (id: string, completed: boolean) => {
     // This function is now primarily for any additional handling
     // since Task component handles the API call directly
-    console.log("Task toggled:", id, completed);
   };
 
   const handleEdit = (id: string) => {
     // The edit functionality is handled within the Task component itself
     // through the edit sheet, so we don't need to do anything here
-    console.log("Edit task:", id);
   };
 
   const handleDuplicate = async (id: string) => {

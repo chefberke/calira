@@ -89,8 +89,6 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    console.log("📊 API Task counts result:", result);
-
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching task counts:", error);

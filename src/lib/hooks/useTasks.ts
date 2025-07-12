@@ -314,8 +314,6 @@ export const useUpdateTask = () => {
   return useMutation({
     mutationFn: updateTask,
     onMutate: async (newTask) => {
-      console.log("🔄 Update task onMutate:", newTask);
-
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
@@ -349,8 +347,6 @@ export const useUpdateTask = () => {
       console.error("Error updating task:", err);
     },
     onSuccess: () => {
-      console.log("✅ Update task success - invalidating queries");
-
       // Invalidate queries only on success to ensure counts are updated correctly
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
@@ -414,9 +410,8 @@ export const useTaskCounts = () => {
   return useQuery({
     queryKey: ["taskCounts"],
     queryFn: async () => {
-      console.log("📊 Fetching task counts...");
       const result = await getTaskCounts();
-      console.log("📊 Task counts result:", result);
+
       return result;
     },
     staleTime: 1000 * 60 * 2, // 2 minutes - more frequent updates for counts

@@ -129,7 +129,6 @@ export const {
                 ownerId: user.id,
               },
             ]);
-            console.log(`Created default teams for OAuth user: ${user.email}`);
           }
         } catch (teamError) {
           console.error(
@@ -159,12 +158,8 @@ export const {
     },
   },
   events: {
-    async signIn(message) {
-      console.log("User signed in:", message.user.email);
-    },
-    async signOut(message) {
-      console.log("User signed out");
-    },
+    async signIn(message) {},
+    async signOut(message) {},
   },
   debug: process.env.NODE_ENV === "development",
 });

@@ -260,8 +260,6 @@ function Task({
                 const newCompleted = checked as boolean;
                 setIsCompleted(newCompleted);
 
-                console.log("🔄 Main checkbox clicked:", { id, newCompleted });
-
                 // Immediately update the task via API call
                 if (id && id !== "1") {
                   updateTaskMutation.mutate({

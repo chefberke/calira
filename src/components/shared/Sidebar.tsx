@@ -128,14 +128,6 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const todayCount = taskCounts?.counts?.today || 0;
   const teamCounts = taskCounts?.counts?.teams || {};
 
-  console.log("🔍 Sidebar Debug:", {
-    taskCounts: taskCounts?.counts,
-    homeCount,
-    todayCount,
-    teamCounts,
-    isLoading,
-  });
-
   // Filter teams to exclude Home and Today
   const customTeams =
     teamsData?.teams?.filter(
