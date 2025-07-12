@@ -94,7 +94,7 @@ export const {
     }),
   ],
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
@@ -103,9 +103,17 @@ export const {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      // If this is an OAuth sign-in (not credentials), check if user has teams and create them if they don't
-      if (account?.provider !== "credentials" && user.id) {
+      console.log("🔐 SignIn callback:", {
+        userId: user.id,
+        email: user.email,
+        provider: account?.provider,
+      });
+
+      // Create teams for all users if they don't exist
+      if (user.id) {
         try {
+          console.log("📋 Checking teams for user:", user.id);
+
           // Check if user already has teams
           const existingTeams = await db
             .select()
@@ -113,26 +121,36 @@ export const {
             .where(eq(teams.ownerId, user.id))
             .limit(1);
 
+          console.log("📋 Existing teams found:", existingTeams.length);
+
           // If no teams exist, create default teams
           if (existingTeams.length === 0) {
-            await db.insert(teams).values([
-              {
-                name: "Home",
-                description: "Your personal workspace for organizing tasks",
-                emoji: "🏠",
-                ownerId: user.id,
-              },
-              {
-                name: "Today",
-                description: "Tasks to focus on today",
-                emoji: "📅",
-                ownerId: user.id,
-              },
-            ]);
+            console.log("📋 Creating default teams for user:", user.id);
+
+            const newTeams = await db
+              .insert(teams)
+              .values([
+                {
+                  name: "Home",
+                  description: "Your personal workspace for organizing tasks",
+                  emoji: "🏠",
+                  ownerId: user.id,
+                },
+                {
+                  name: "Today",
+                  description: "Tasks to focus on today",
+                  emoji: "📅",
+                  ownerId: user.id,
+                },
+              ])
+              .returning();
+
+            console.log("✅ Successfully created teams:", newTeams.length);
           }
         } catch (teamError) {
           console.error(
-            "Failed to create default teams for OAuth user:",
+            "❌ Failed to create default teams for user:",
+            user.id,
             teamError
           );
           // Don't fail the sign-in if team creation fails
@@ -143,16 +161,38 @@ export const {
       return true;
     },
     async redirect({ url, baseUrl }) {
+      console.log("🔄 Redirect callback:", { url, baseUrl });
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl + "/board";
     },
-    async session({ session, user }) {
+    async jwt({ token, user, account }) {
+      console.log("🔑 JWT callback:", {
+        tokenSub: token?.sub,
+        userId: user?.id,
+        provider: account?.provider,
+      });
+
+      // If this is the first time the JWT callback is called
+      // after signing in, the user object will be available
+      if (user) {
+        token.sub = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      console.log("📋 Session callback:", {
+        sessionUserId: session.user?.id,
+        sessionEmail: session.user?.email,
+        tokenSub: token?.sub,
+        tokenEmail: token?.email,
+      });
+
       // Send properties to the client
-      if (session.user) {
-        session.user.id = user.id;
+      if (session.user && token?.sub) {
+        session.user.id = token.sub;
       }
       return session;
     },

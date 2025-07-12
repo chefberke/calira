@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import PageTransition from "@/components/shared/PageTransition";
 import CreateTask from "@/components/shared/CreateTask";
 import Tasks from "@/components/shared/Tasks";
+import UserSettings from "@/components/shared/UserSettings";
 import { useTeams } from "@/lib/hooks/useTasks";
 
 function TeamPage() {
@@ -66,13 +67,17 @@ function TeamPage() {
                 {currentTeam.name}
               </h1>
             </div>
-            <Image
-              src="/more.svg"
-              alt="More options"
-              width={24}
-              height={24}
-              className="cursor-pointer opacity-0 group-hover:opacity-40 hover:opacity-60 transition-opacity duration-200 hidden sm:block"
-            />
+            <UserSettings>
+              <div className="p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                <Image
+                  src="/more.svg"
+                  alt="More options"
+                  width={20}
+                  height={20}
+                  className="opacity-60 hover:opacity-80 transition-opacity duration-200"
+                />
+              </div>
+            </UserSettings>
           </div>
         </div>
         <CreateTask defaultTeam={currentTeam.id.toString()} />

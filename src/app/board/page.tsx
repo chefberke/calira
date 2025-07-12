@@ -1,18 +1,67 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import PageTransition from "@/components/shared/PageTransition";
 import CreateTask from "@/components/shared/CreateTask";
 import Task from "@/components/shared/Task";
 import Tasks from "@/components/shared/Tasks";
+import UserSettings from "@/components/shared/UserSettings";
+import { useUser } from "@/lib/hooks/useTasks";
 
 function page() {
-  // Mock user data
-  const user = {
-    name: "Berke Kanber",
-    avatar: "/avatar.jpg", // placeholder
-  };
+  const router = useRouter();
+
+  // Get user data from API
+  const { data: userData, isLoading, error } = useUser();
+
+  // Redirect to sign-in if user data is not available and not loading
+  useEffect(() => {
+    if (!isLoading && (error || !userData)) {
+      router.push("/sign-in");
+    }
+  }, [isLoading, error, userData, router]);
+
+  // If loading, show loading state
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <div className="w-full h-full py-6 sm:py-8 lg:py-10 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-20 2xl:px-64">
+          <div className="mb-6 lg:mb-8">
+            <div className="mb-2 flex justify-between items-start">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-700">
+                  Loading...
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  // If error or no user data, show loading while redirecting
+  if (error || !userData) {
+    return (
+      <PageTransition>
+        <div className="w-full h-full py-6 sm:py-8 lg:py-10 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-20 2xl:px-64">
+          <div className="mb-6 lg:mb-8">
+            <div className="mb-2 flex justify-between items-start">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-700">
+                  Redirecting to login...
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  const user = userData;
 
   // Get current time and determine greeting
   const now = new Date();
@@ -52,13 +101,17 @@ function page() {
                 It's {formattedDate}
               </p>
             </div>
-            <Image
-              src="/more.svg"
-              alt="More options"
-              width={24}
-              height={24}
-              className="cursor-pointer opacity-0 group-hover:opacity-40 hover:opacity-60 transition-opacity duration-200 hidden sm:block"
-            />
+            <UserSettings>
+              <div className="p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                <Image
+                  src="/more.svg"
+                  alt="More options"
+                  width={20}
+                  height={20}
+                  className="opacity-60 hover:opacity-80 transition-opacity duration-200"
+                />
+              </div>
+            </UserSettings>
           </div>
         </div>
         <CreateTask />

@@ -79,6 +79,16 @@ export interface TaskCountsResponse {
   };
 }
 
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  image: string;
+  createdAt: Date;
+  provider: string;
+  taskCount: number;
+}
+
 // API functions
 const createTask = async (
   data: CreateTaskRequest
@@ -247,6 +257,24 @@ const getTaskCounts = async (): Promise<TaskCountsResponse> => {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || "Failed to fetch task counts");
+  }
+
+  return response.json();
+};
+
+const getUser = async (): Promise<UserResponse> => {
+  const response = await fetch("/api/user/me", {
+    credentials: "include", // Include cookies for authentication
+  });
+
+  if (!response.ok) {
+    // If 401 or 403, it means user is not authenticated
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("UNAUTHORIZED");
+    }
+
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch user data");
   }
 
   return response.json();
@@ -534,5 +562,23 @@ export const useDeleteTeam = () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["taskCounts"] });
     },
+  });
+};
+
+export const useUser = () => {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: getUser,
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error.message === "UNAUTHORIZED") {
+        return false;
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Always refetch on mount
   });
 };

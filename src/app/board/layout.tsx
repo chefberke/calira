@@ -1,7 +1,9 @@
 "use client";
 
 import Sidebar from "@/components/shared/Sidebar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/lib/hooks/useTasks";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +19,43 @@ export default function BoardLayout({
   children: React.ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const { data: userData, isLoading, error } = useUser();
+
+  // Authentication check - redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && (error || !userData)) {
+      router.push("/sign-in");
+    }
+  }, [isLoading, error, userData, router]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden">
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center z-0">
+          <div className="w-[300px] h-[200px] sm:w-[400px] sm:h-[280px] lg:w-[500px] lg:h-[350px] blur-[180px] sm:blur-[220px] lg:blur-[240px] rounded-full bg-gradient-to-r from-[#08203E] to-[#6036E9] z-0"></div>
+        </div>
+        <div className="relative h-screen w-full backdrop-blur-3xl bg-gray-300/50 rounded-none sm:rounded-2xl lg:rounded-3xl flex z-10 items-center justify-center">
+          <div className="text-gray-700 text-xl">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show redirecting message if not authenticated
+  if (error || !userData) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden">
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center z-0">
+          <div className="w-[300px] h-[200px] sm:w-[400px] sm:h-[280px] lg:w-[500px] lg:h-[350px] blur-[180px] sm:blur-[220px] lg:blur-[240px] rounded-full bg-gradient-to-r from-[#08203E] to-[#6036E9] z-0"></div>
+        </div>
+        <div className="relative h-screen w-full backdrop-blur-3xl bg-gray-300/50 rounded-none sm:rounded-2xl lg:rounded-3xl flex z-10 items-center justify-center">
+          <div className="text-gray-700 text-xl">Redirecting to login...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-screen overflow-hidden">

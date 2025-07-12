@@ -22,6 +22,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/sign-in", nextUrl));
   }
 
+  // Additional check: if user is trying to access board without auth, force redirect
+  if (nextUrl.pathname.startsWith("/board") && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/sign-in", nextUrl));
+  }
+
   return NextResponse.next();
 });
 
@@ -29,12 +34,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (auth routes)
+     * - api (all API routes handle their own auth)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\..*|public).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|public).*)",
   ],
 };
