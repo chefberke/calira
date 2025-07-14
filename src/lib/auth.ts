@@ -103,17 +103,9 @@ export const {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log("🔐 SignIn callback:", {
-        userId: user.id,
-        email: user.email,
-        provider: account?.provider,
-      });
-
       // Create teams for all users if they don't exist
       if (user.id) {
         try {
-          console.log("📋 Checking teams for user:", user.id);
-
           // Check if user already has teams
           const existingTeams = await db
             .select()
@@ -121,12 +113,8 @@ export const {
             .where(eq(teams.ownerId, user.id))
             .limit(1);
 
-          console.log("📋 Existing teams found:", existingTeams.length);
-
           // If no teams exist, create default teams
           if (existingTeams.length === 0) {
-            console.log("📋 Creating default teams for user:", user.id);
-
             const newTeams = await db
               .insert(teams)
               .values([
@@ -144,8 +132,6 @@ export const {
                 },
               ])
               .returning();
-
-            console.log("✅ Successfully created teams:", newTeams.length);
           }
         } catch (teamError) {
           console.error(
@@ -161,7 +147,6 @@ export const {
       return true;
     },
     async redirect({ url, baseUrl }) {
-      console.log("🔄 Redirect callback:", { url, baseUrl });
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
@@ -169,12 +154,6 @@ export const {
       return baseUrl + "/board";
     },
     async jwt({ token, user, account }) {
-      console.log("🔑 JWT callback:", {
-        tokenSub: token?.sub,
-        userId: user?.id,
-        provider: account?.provider,
-      });
-
       // If this is the first time the JWT callback is called
       // after signing in, the user object will be available
       if (user) {
@@ -183,13 +162,6 @@ export const {
       return token;
     },
     async session({ session, token }) {
-      console.log("📋 Session callback:", {
-        sessionUserId: session.user?.id,
-        sessionEmail: session.user?.email,
-        tokenSub: token?.sub,
-        tokenEmail: token?.email,
-      });
-
       // Send properties to the client
       if (session.user && token?.sub) {
         session.user.id = token.sub;

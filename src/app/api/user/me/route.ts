@@ -9,15 +9,8 @@ export async function GET() {
   try {
     // Check authentication
     const session = await auth();
-    console.log("🔍 GET /api/user/me - Session:", {
-      session: session ? "exists" : "null",
-      userId: session?.user?.id,
-      userEmail: session?.user?.email,
-      expires: session?.expires,
-    });
 
     if (!session?.user?.id) {
-      console.log("❌ GET /api/user/me - No session or user ID");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -44,7 +37,6 @@ export async function GET() {
         .limit(1);
 
       if (existingTeams.length === 0) {
-        console.log("🔄 Creating fallback teams for user:", session.user.id);
         await db.insert(teams).values([
           {
             name: "Home",
@@ -59,10 +51,9 @@ export async function GET() {
             ownerId: session.user.id,
           },
         ]);
-        console.log("✅ Fallback teams created successfully");
       }
     } catch (teamError) {
-      console.error("❌ Failed to create fallback teams:", teamError);
+      console.error("Failed to create fallback teams:", teamError);
       // Don't fail the request if team creation fails
     }
 

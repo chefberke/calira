@@ -427,7 +427,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
   };
 
   return (
-    <div className="w-full 2xl:w-xl xl:w-lg h-full py-4 lg:py-8 px-3 lg:px-6">
+    <div className="w-full 2xl:w-xl xl:w-md lg:w-md h-full py-4 lg:py-8 px-3 lg:px-6">
       <div className="w-full h-full bg-white rounded-2xl p-3 lg:p-4 shadow-sm border border-neutral-100">
         <div className="flex flex-col items-start justify-start w-full h-full py-4 lg:py-6 px-4 lg:px-8">
           <div className="w-full space-y-1">

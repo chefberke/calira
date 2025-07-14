@@ -366,7 +366,7 @@ export const useUpdateTask = () => {
       return { previousTasks };
     },
     onError: (err, newTask, context) => {
-      console.error("❌ Update task error:", err);
+      console.error("Update task error:", err);
 
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousTasks) {

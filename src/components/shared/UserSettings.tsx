@@ -194,7 +194,7 @@ export default function UserSettings({ children }: UserSettingsProps) {
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="w-full h-11 justify-center text-neutral-700 border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400 transition-colors"
+              className="w-full h-11 justify-center text-neutral-700 border-neutral-300 hover:bg-neutral-50 cursor-pointer hover:border-neutral-400 transition-colors"
             >
               Sign out
             </Button>
