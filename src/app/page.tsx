@@ -1,3 +1,4 @@
+import Grids from "@/components/landing/Grids";
 import Hero from "@/components/landing/Hero";
 import Nav from "@/components/landing/Nav";
 import PageTransition from "@/components/shared/PageTransition";
@@ -47,6 +48,7 @@ export default function Home() {
             <div className="w-full h-full max-w-4xl">
               <Nav />
               <Hero />
+              <Grids />
             </div>
           </div>
         </div>
