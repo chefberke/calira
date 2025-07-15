@@ -1,3 +1,4 @@
+import CoolText from "@/components/landing/CoolText";
 import Grids from "@/components/landing/Grids";
 import Hero from "@/components/landing/Hero";
 import Nav from "@/components/landing/Nav";
@@ -49,6 +50,7 @@ export default function Home() {
               <Nav />
               <Hero />
               <Grids />
+              <CoolText />
             </div>
           </div>
         </div>
