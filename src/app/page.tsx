@@ -2,6 +2,7 @@ import CoolText from "@/components/landing/CoolText";
 import Grids from "@/components/landing/Grids";
 import Hero from "@/components/landing/Hero";
 import Nav from "@/components/landing/Nav";
+import Team from "@/components/landing/Team";
 import PageTransition from "@/components/shared/PageTransition";
 
 export default function Home() {
@@ -50,6 +51,7 @@ export default function Home() {
               <Nav />
               <Hero />
               <Grids />
+              <Team />
               <CoolText />
             </div>
           </div>
