@@ -40,11 +40,13 @@ const teamMembers = [
     name: "Berke Kanber",
     role: "Software Developer",
     image: "/chefberke.png",
+    color: "bg-orange-200",
   },
   {
     name: "Harun Demirci",
     role: "Software & Design Specialist",
     image: "/chefharun.png",
+    color: "bg-blue-200",
   },
 ];
 
@@ -56,12 +58,12 @@ function Team() {
       variants={containerVariants}
       className="w-full py-20"
     >
-      <div className="max-w-6xl mx-auto px-4">
-        <motion.div variants={itemVariants} className="mb-16">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-normal text-neutral-900 leading-tight tracking-tight mb-6">
+      <div className="max-w-6xl mx-auto px-4 py-12 bg-neutral-50 rounded-xl shadow-sm">
+        <motion.div variants={itemVariants} className="mb-16 text-center">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-neutral-900 leading-tight tracking-tight mb-4">
             The minds behind the mission
           </h2>
-          <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl leading-relaxed">
+          <p className="text-sm md:text-base text-neutral-600 max-w-2xl mx-auto leading-relaxed">
             We're a small team passionate about creating simple, focused tools
             that help people be more productive.
           </p>
@@ -69,28 +71,30 @@ function Team() {
 
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-3xl mx-auto"
         >
           {teamMembers.map((member, index) => (
             <motion.div
               key={member.name}
               variants={itemVariants}
-              className="flex items-start space-x-4"
+              className="flex flex-col items-center text-center space-y-1"
             >
-              <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+              <div
+                className={`relative w-16 h-16 rounded-full overflow-hidden ${member.color}`}
+              >
                 <Image
                   src={member.image}
                   alt={member.name}
                   fill
-                  className="object-cover"
+                  className="object-cover scale-110"
                 />
               </div>
 
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-medium text-neutral-900 mb-1">
+              <div className="flex flex-col items-center">
+                <h3 className="text-base font-medium text-neutral-900 mb-0.5">
                   {member.name}
                 </h3>
-                <p className="text-sm text-neutral-600 mb-3">{member.role}</p>
+                <p className="text-sm text-neutral-600">{member.role}</p>
               </div>
             </motion.div>
           ))}
