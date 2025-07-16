@@ -412,8 +412,7 @@ function Grids() {
             </h2>
             <p className="text-sm md:text-base text-neutral-500 leading-relaxed">
               Use keyboard shortcuts to create lists and manage tasks
-              efficiently. Save time with quick actions and streamline your
-              workflow.
+              efficiently.
             </p>
           </div>
 
