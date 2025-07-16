@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,14 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import Image from "next/image";
 import { format } from "date-fns";
 import { useUpdateTask, useTeams } from "@/lib/hooks/useTasks";
@@ -116,58 +109,64 @@ function Task({
 
   // Hooks
   const updateTaskMutation = useUpdateTask();
-  const { data: teamsData, isLoading: teamsLoading } = useTeams();
+  const { data: teamsData } = useTeams();
 
-  const teams = teamsData?.teams || [];
+  const teams = useMemo(() => teamsData?.teams || [], [teamsData?.teams]);
 
   // Helper function to get team info for category display
-  const getTeamDisplayInfo = (teamIdString: string) => {
-    if (teamIdString === "no-list") {
-      return {
-        name: "No list",
-        icon: "/mini.svg",
-        emoji: undefined,
-      };
-    }
+  const getTeamDisplayInfo = useCallback(
+    (teamIdString: string) => {
+      if (teamIdString === "no-list") {
+        return {
+          name: "No list",
+          icon: "/mini.svg",
+          emoji: undefined,
+        };
+      }
 
-    const team = teams.find((t) => t.id.toString() === teamIdString);
-    if (!team) {
-      return {
-        name: "No list",
-        icon: "/mini.svg",
-        emoji: undefined,
-      };
-    }
+      const team = teams.find((t) => t.id.toString() === teamIdString);
+      if (!team) {
+        return {
+          name: "No list",
+          icon: "/mini.svg",
+          emoji: undefined,
+        };
+      }
 
-    const teamNameLower = team.name.toLowerCase();
+      const teamNameLower = team.name.toLowerCase();
 
-    // Today team uses calendar icon
-    if (teamNameLower === "today") {
+      // Today team uses calendar icon
+      if (teamNameLower === "today") {
+        return {
+          name: team.name,
+          icon: "/calendar.svg",
+          emoji: undefined,
+        };
+      }
+
+      // Other teams use their emoji or default icon
       return {
         name: team.name,
-        icon: "/calendar.svg",
-        emoji: undefined,
+        icon: team.emoji ? undefined : "/mini.svg",
+        emoji: team.emoji,
       };
-    }
-
-    // Other teams use their emoji or default icon
-    return {
-      name: team.name,
-      icon: team.emoji ? undefined : "/mini.svg",
-      emoji: team.emoji,
-    };
-  };
+    },
+    [teams]
+  );
 
   // Helper function to get correct team ID for edit
-  const getEditTeamId = (taskTeamId?: number): string => {
-    if (!taskTeamId) return "no-list";
+  const getEditTeamId = useCallback(
+    (taskTeamId?: number): string => {
+      if (!taskTeamId) return "no-list";
 
-    const team = teams.find((t) => t.id === taskTeamId);
-    if (!team || team.name.toLowerCase() === "home") {
-      return "no-list";
-    }
-    return taskTeamId.toString();
-  };
+      const team = teams.find((t) => t.id === taskTeamId);
+      if (!team || team.name.toLowerCase() === "home") {
+        return "no-list";
+      }
+      return taskTeamId.toString();
+    },
+    [teams]
+  );
 
   // Update category display when editTeamId changes
   useEffect(() => {
@@ -175,7 +174,7 @@ function Task({
     setCurrentCategory(teamInfo.name || "No list");
     setCurrentCategoryIcon(teamInfo.icon || "/mini.svg");
     setCurrentCategoryEmoji(teamInfo.emoji || undefined);
-  }, [editTeamId, teams]);
+  }, [editTeamId, getTeamDisplayInfo]);
 
   // Initialize edit values when props change
   useEffect(() => {
@@ -184,7 +183,7 @@ function Task({
     setEditTeamId(getEditTeamId(teamId));
     setEditDate(parseSafeDate(dueDate));
     setEditNotes(description || "");
-  }, [title, completed, teamId, dueDate, description, teams]);
+  }, [title, completed, teamId, dueDate, description, getEditTeamId]);
 
   // Initialize category states when props change
   useEffect(() => {

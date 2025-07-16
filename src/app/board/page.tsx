@@ -5,12 +5,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import PageTransition from "@/components/shared/PageTransition";
 import CreateTask from "@/components/shared/CreateTask";
-import Task from "@/components/shared/Task";
 import Tasks from "@/components/shared/Tasks";
 import UserSettings from "@/components/shared/UserSettings";
 import { useUser } from "@/lib/hooks/useTasks";
+import { motion } from "framer-motion";
 
-function page() {
+function Page() {
   const router = useRouter();
 
   // Get user data from API
@@ -29,12 +29,16 @@ function page() {
       <PageTransition>
         <div className="w-full h-full py-6 sm:py-8 lg:py-10 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-20 2xl:px-64">
           <div className="mb-6 lg:mb-8">
-            <div className="mb-2 flex justify-between items-start">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-700">
-                  Loading...
-                </h1>
-              </div>
+            <div className="flex items-center justify-center py-8">
+              <motion.div
+                className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-400 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
             </div>
           </div>
         </div>
@@ -98,7 +102,7 @@ function page() {
               </h1>
               {/* Date display with greyish color directly below */}
               <p className="text-gray-500 text-xl sm:text-2xl">
-                It's {formattedDate}
+                It&apos;s {formattedDate}
               </p>
             </div>
             <UserSettings>
@@ -121,4 +125,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

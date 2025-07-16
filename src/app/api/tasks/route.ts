@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
     const todayFilter = searchParams.get("today");
 
     // Build query conditions
-    let whereConditions = [eq(tasks.createdById, session.user.id)];
+    const whereConditions = [eq(tasks.createdById, session.user.id)];
 
     if (teamId) {
       whereConditions.push(eq(tasks.teamId, parseInt(teamId)));
@@ -232,7 +232,16 @@ export async function PUT(request: NextRequest) {
     }
 
     // Prepare update data
-    const updateData: any = {
+    const updateData: {
+      updatedAt: Date;
+      title?: string;
+      description?: string | null;
+      teamId?: number;
+      assignedToId?: string | null;
+      dueDate?: Date | null;
+      completed?: boolean;
+      completedAt?: Date | null;
+    } = {
       updatedAt: new Date(),
     };
 

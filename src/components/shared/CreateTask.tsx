@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -38,7 +38,7 @@ function CreateTask({ defaultTeam = "home" }: CreateTaskProps) {
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
   const createTaskMutation = useCreateTask();
 
-  const teams = teamsData?.teams || [];
+  const teams = useMemo(() => teamsData?.teams || [], [teamsData?.teams]);
   const homeTeam = teams.find((team) => team.name.toLowerCase() === "home");
   const todayTeam = teams.find((team) => team.name.toLowerCase() === "today");
 
@@ -129,7 +129,7 @@ function CreateTask({ defaultTeam = "home" }: CreateTaskProps) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
-    } catch (error) {
+    } catch {
       // Handle errors silently for now
     }
   };

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Github, Linkedin, Twitter } from "lucide-react";
 import Image from "next/image";
 
 const containerVariants = {
@@ -64,8 +63,8 @@ function Team() {
             The minds behind the mission
           </h2>
           <p className="text-sm md:text-base text-neutral-600 max-w-2xl mx-auto leading-relaxed">
-            We're a small team passionate about creating simple, focused tools
-            that help people be more productive.
+            We&apos;re a small team passionate about creating simple, focused
+            tools that help people be more productive.
           </p>
         </motion.div>
 
@@ -73,7 +72,7 @@ function Team() {
           variants={itemVariants}
           className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-3xl mx-auto"
         >
-          {teamMembers.map((member, index) => (
+          {teamMembers.map((member) => (
             <motion.div
               key={member.name}
               variants={itemVariants}

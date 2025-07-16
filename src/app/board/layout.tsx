@@ -12,6 +12,7 @@ import {
   SheetHeader,
 } from "@/components/ui/sheet";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function BoardLayout({
   children,
@@ -37,7 +38,17 @@ export default function BoardLayout({
           <div className="w-[300px] h-[200px] sm:w-[400px] sm:h-[280px] lg:w-[500px] lg:h-[350px] blur-[180px] sm:blur-[220px] lg:blur-[240px] rounded-full bg-gradient-to-r from-[#08203E] to-[#6036E9] z-0"></div>
         </div>
         <div className="relative h-screen w-full backdrop-blur-3xl bg-gray-300/50 rounded-none sm:rounded-2xl lg:rounded-3xl flex z-10 items-center justify-center">
-          <div className="text-gray-700 text-xl">Loading...</div>
+          <div className="flex items-center justify-center py-8">
+            <motion.div
+              className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-400 rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+          </div>
         </div>
       </div>
     );

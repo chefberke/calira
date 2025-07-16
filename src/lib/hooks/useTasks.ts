@@ -89,6 +89,23 @@ export interface UserResponse {
   taskCount: number;
 }
 
+// Query data types for optimistic updates
+export interface TasksQueryData {
+  tasks: Task[];
+}
+
+export interface TeamsQueryData {
+  teams: Team[];
+}
+
+export interface TaskCountsQueryData {
+  counts: {
+    home: number;
+    today: number;
+    teams: { [key: number]: number };
+  };
+}
+
 // API functions
 const createTask = async (
   data: CreateTaskRequest
@@ -309,7 +326,7 @@ export const useCreateTask = () => {
       };
 
       // Optimistically update the cache
-      queryClient.setQueryData(["tasks"], (old: any) => {
+      queryClient.setQueryData(["tasks"], (old: TasksQueryData | undefined) => {
         if (!old?.tasks) return { tasks: [optimisticTask] };
 
         return {
@@ -349,12 +366,12 @@ export const useUpdateTask = () => {
       const previousTasks = queryClient.getQueryData(["tasks"]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData(["tasks"], (old: any) => {
+      queryClient.setQueryData(["tasks"], (old: TasksQueryData | undefined) => {
         if (!old?.tasks) return old;
 
         return {
           ...old,
-          tasks: old.tasks.map((task: any) =>
+          tasks: old.tasks.map((task: Task) =>
             task.id === newTask.id
               ? { ...task, ...newTask, updatedAt: new Date().toISOString() }
               : task
@@ -474,12 +491,12 @@ export const useUpdateTeam = () => {
       const previousTeams = queryClient.getQueryData(["teams"]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData(["teams"], (old: any) => {
+      queryClient.setQueryData(["teams"], (old: TeamsQueryData | undefined) => {
         if (!old?.teams) return old;
 
         return {
           ...old,
-          teams: old.teams.map((team: any) =>
+          teams: old.teams.map((team: Team) =>
             team.id === newTeamData.id
               ? { ...team, ...newTeamData, updatedAt: new Date().toISOString() }
               : team
@@ -521,22 +538,22 @@ export const useDeleteTeam = () => {
       const previousTaskCounts = queryClient.getQueryData(["taskCounts"]);
 
       // Optimistically update teams
-      queryClient.setQueryData(["teams"], (old: any) => {
+      queryClient.setQueryData(["teams"], (old: TeamsQueryData | undefined) => {
         if (!old?.teams) return old;
 
         return {
           ...old,
-          teams: old.teams.filter((team: any) => team.id !== teamId),
+          teams: old.teams.filter((team: Team) => team.id !== teamId),
         };
       });
 
       // Optimistically update tasks (remove tasks from this team)
-      queryClient.setQueryData(["tasks"], (old: any) => {
+      queryClient.setQueryData(["tasks"], (old: TasksQueryData | undefined) => {
         if (!old?.tasks) return old;
 
         return {
           ...old,
-          tasks: old.tasks.filter((task: any) => task.teamId !== teamId),
+          tasks: old.tasks.filter((task: Task) => task.teamId !== teamId),
         };
       });
 

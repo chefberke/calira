@@ -102,7 +102,7 @@ export const {
     error: "/sign-in", // Redirect errors to sign-in page
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       // Create teams for all users if they don't exist
       if (user.id) {
         try {
@@ -115,7 +115,7 @@ export const {
 
           // If no teams exist, create default teams
           if (existingTeams.length === 0) {
-            const newTeams = await db
+            await db
               .insert(teams)
               .values([
                 {
@@ -153,7 +153,7 @@ export const {
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl + "/board";
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       // If this is the first time the JWT callback is called
       // after signing in, the user object will be available
       if (user) {
@@ -170,8 +170,8 @@ export const {
     },
   },
   events: {
-    async signIn(message) {},
-    async signOut(message) {},
+    async signIn() {},
+    async signOut() {},
   },
   debug: process.env.NODE_ENV === "development",
 });

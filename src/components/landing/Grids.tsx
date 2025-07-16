@@ -30,7 +30,6 @@ function Grids() {
   const [completed, setCompleted] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState("home");
 
-  const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null);
   const [activeNavItem, setActiveNavItem] = useState("home");
 
   const teams = [
@@ -118,7 +117,14 @@ function Grids() {
     setActiveNavItem(itemId);
   };
 
-  const getNavItemStyles = (item: any) => {
+  const getNavItemStyles = (item: {
+    id: string;
+    label: string;
+    icon?: string;
+    emoji?: string;
+    count: number;
+    isActive: boolean;
+  }) => {
     return `flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group cursor-pointer ${
       item.isActive
         ? "bg-neutral-100 text-neutral-900"
@@ -126,13 +132,27 @@ function Grids() {
     }`;
   };
 
-  const getNavIconStyles = (item: any) => {
+  const getNavIconStyles = (item: {
+    id: string;
+    label: string;
+    icon?: string;
+    emoji?: string;
+    count: number;
+    isActive: boolean;
+  }) => {
     return item.isActive
       ? "text-neutral-900"
       : "text-neutral-700 group-hover:text-neutral-900";
   };
 
-  const getNavCountStyles = (item: any) => {
+  const getNavCountStyles = (item: {
+    id: string;
+    label: string;
+    icon?: string;
+    emoji?: string;
+    count: number;
+    isActive: boolean;
+  }) => {
     return item.isActive
       ? "bg-neutral-200 text-neutral-700"
       : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200 group-hover:text-neutral-700";
@@ -363,8 +383,6 @@ function Grids() {
                     key={item.id}
                     className={getNavItemStyles(item)}
                     onClick={(e) => handleNavItemClick(e, item.id)}
-                    onMouseEnter={() => setHoveredNavItem(item.id)}
-                    onMouseLeave={() => setHoveredNavItem(null)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}

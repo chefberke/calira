@@ -35,7 +35,7 @@ const signUpSchema = z
 
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
-function page() {
+function Page() {
   const router = useRouter();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -244,4 +244,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

@@ -6,7 +6,7 @@ import { teamMembers } from "@/db/schema/team-members";
 import { tasks } from "@/db/schema/tasks";
 import { eq } from "drizzle-orm";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const session = await auth();

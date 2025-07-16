@@ -23,7 +23,7 @@ const signInSchema = z.object({
 
 type SignInFormData = z.infer<typeof signInSchema>;
 
-function page() {
+function Page() {
   const router = useRouter();
   const [error, setError] = useState<string>("");
 
@@ -31,7 +31,6 @@ function page() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
   });
@@ -148,7 +147,7 @@ function page() {
 
               <div className="flex items-center justify-start pt-4 gap-1">
                 <h2 className="text-sm text-neutral-500">
-                  Don't have an account?
+                  Don&apos;t have an account?
                 </h2>
                 <Link href="/sign-up">
                   <h2 className="text-sm text-ring/80 hover:text-ring/60 transition-all duration-300">
@@ -187,4 +186,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

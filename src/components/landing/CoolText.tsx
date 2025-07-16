@@ -2,7 +2,6 @@
 
 import React from "react";
 import { BlurText } from "@/components/ui/animated-blur-text";
-import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 

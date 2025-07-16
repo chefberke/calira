@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -38,11 +38,16 @@ interface SidebarProps {
   onNavigate?: () => void; // Optional callback for mobile navigation
 }
 
+// Type for emoji selection
+interface EmojiData {
+  native: string;
+}
+
 function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: taskCounts, isLoading } = useTaskCounts();
-  const { data: teamsData, isLoading: teamsLoading } = useTeams();
+  const { data: taskCounts } = useTaskCounts();
+  const { data: teamsData } = useTeams();
   const createTeamMutation = useCreateTeam();
   const updateTeamMutation = useUpdateTeam();
   const deleteTeamMutation = useDeleteTeam();
@@ -63,6 +68,39 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const [showEditEmojiPicker, setShowEditEmojiPicker] = useState(false);
   const editFormRef = useRef<HTMLDivElement>(null);
 
+  // Filter teams to exclude Home and Today
+  const customTeams =
+    teamsData?.teams?.filter(
+      (team) => team.name !== "Home" && team.name !== "Today"
+    ) || [];
+
+  const handleCreateListClick = useCallback(() => {
+    // Check if user has reached the limit of 10 teams
+    if (customTeams.length >= 10) {
+      setShowLimitWarning(true);
+      setTimeout(() => setShowLimitWarning(false), 3000); // Hide warning after 3 seconds
+      return;
+    }
+
+    setIsCreateListExpanded(!isCreateListExpanded);
+    if (isCreateListExpanded) {
+      // Reset form when closing
+      setListName("");
+      setSelectedEmoji("🍎");
+      setShowEmojiPicker(false);
+    } else {
+      // Focus input when opening (after animation)
+      setTimeout(() => {
+        const input = formRef.current?.querySelector(
+          'input[type="text"]'
+        ) as HTMLInputElement;
+        if (input) {
+          input.focus();
+        }
+      }, 100);
+    }
+  }, [isCreateListExpanded, customTeams.length]);
+
   // Global keyboard event listener for Command+E shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,7 +113,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [handleCreateListClick]);
 
   // Click outside detection
   useEffect(() => {
@@ -127,12 +165,6 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const homeCount = taskCounts?.counts?.home || 0;
   const todayCount = taskCounts?.counts?.today || 0;
   const teamCounts = taskCounts?.counts?.teams || {};
-
-  // Filter teams to exclude Home and Today
-  const customTeams =
-    teamsData?.teams?.filter(
-      (team) => team.name !== "Home" && team.name !== "Today"
-    ) || [];
 
   // Built-in sidebar items
   const sidebarItems: SidebarItem[] = [
@@ -241,39 +273,12 @@ function Sidebar({ onNavigate }: SidebarProps) {
     }
   };
 
-  const handleCreateListClick = () => {
-    // Check if user has reached the limit of 10 teams
-    if (customTeams.length >= 10) {
-      setShowLimitWarning(true);
-      setTimeout(() => setShowLimitWarning(false), 3000); // Hide warning after 3 seconds
-      return;
-    }
-
-    setIsCreateListExpanded(!isCreateListExpanded);
-    if (isCreateListExpanded) {
-      // Reset form when closing
-      setListName("");
-      setSelectedEmoji("🍎");
-      setShowEmojiPicker(false);
-    } else {
-      // Focus input when opening (after animation)
-      setTimeout(() => {
-        const input = formRef.current?.querySelector(
-          'input[type="text"]'
-        ) as HTMLInputElement;
-        if (input) {
-          input.focus();
-        }
-      }, 100);
-    }
-  };
-
-  const handleEmojiSelect = (emoji: any) => {
+  const handleEmojiSelect = (emoji: EmojiData) => {
     setSelectedEmoji(emoji.native);
     setShowEmojiPicker(false);
   };
 
-  const handleEditEmojiSelect = (emoji: any) => {
+  const handleEditEmojiSelect = (emoji: EmojiData) => {
     setEditingTeamEmoji(emoji.native);
     setShowEditEmojiPicker(false);
   };
@@ -349,7 +354,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
       setSelectedEmoji("🍎");
     } else if (e.key === "Enter" && listName.trim()) {
       e.preventDefault();
-      handleSubmit(e as any);
+      handleSubmit(e);
     }
   };
 
@@ -361,7 +366,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
       setShowEditEmojiPicker(false);
     } else if (e.key === "Enter" && editingTeamName.trim()) {
       e.preventDefault();
-      handleEditSubmit(e as any);
+      handleEditSubmit(e);
     }
   };
 

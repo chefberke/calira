@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Task from "@/components/shared/Task";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useTasks,
-  useUpdateTask,
   useDeleteTask,
   useDuplicateTask,
   useTeams,
 } from "@/lib/hooks/useTasks";
+import { Team } from "@/db/schema/teams";
 
 interface TasksProps {
   teamId?: number;
@@ -30,7 +30,6 @@ function Tasks({ teamId, showCompleted = true, today = false }: TasksProps) {
 
   const { data: teamsData, isLoading: teamsLoading } = useTeams();
 
-  const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
   const duplicateTaskMutation = useDuplicateTask();
 
@@ -43,7 +42,7 @@ function Tasks({ teamId, showCompleted = true, today = false }: TasksProps) {
   };
 
   // Helper function to get appropriate icon/emoji for team
-  const getTeamIconOrEmoji = (team: any) => {
+  const getTeamIconOrEmoji = (team: Team | undefined) => {
     if (!team) return "/mini.svg";
 
     const teamNameLower = team.name.toLowerCase();
@@ -62,12 +61,12 @@ function Tasks({ teamId, showCompleted = true, today = false }: TasksProps) {
     return team.emoji || "/mini.svg";
   };
 
-  const handleToggleComplete = async (id: string, completed: boolean) => {
+  const handleToggleComplete = async () => {
     // This function is now primarily for any additional handling
     // since Task component handles the API call directly
   };
 
-  const handleEdit = (id: string) => {
+  const handleEdit = () => {
     // The edit functionality is handled within the Task component itself
     // through the edit sheet, so we don't need to do anything here
   };
