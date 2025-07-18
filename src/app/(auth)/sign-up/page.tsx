@@ -116,7 +116,9 @@ function Page() {
         <div className="absolute bottom-1/3 right-1/4 w-64 h-64 bg-ring/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="flex flex-col gap-12 items-center justify-center w-full h-full relative z-10">
-          <Image src="/logo.svg" alt="logo" width={85} height={85} />
+          <Link href="/" className="hover:cursor-pointer">
+            <Image src="/logo.svg" alt="logo" width={85} height={85} />
+          </Link>
           <div className="bg-white/90 backdrop-blur-sm w-[400px] shadow-lg border border-neutral-100 rounded-3xl">
             <div className="flex flex-col p-10">
               <div className="text-2xl font-semibold text-neutral-950">
