@@ -1,6 +1,6 @@
 <div>
-  <h1 style="display: flex; align-items: center; gap: 8px;">
-    <img src="./public/logo_classic.svg" alt="Lumi Logo" width="32" height="32">
+    <img src="./public/logo_classic.svg" alt="Lumi Logo" width="48" height="48">
+  <h1>
     Lumi
   </h1>
   <p><strong>Simple. Focused. Productive.</strong></p>
