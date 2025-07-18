@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div>
+  <h1 style="display: flex; align-items: center; gap: 8px;">
+    <img src="./public/logo_classic.svg" alt="Lumi Logo" width="32" height="32">
+    Lumi
+  </h1>
+  <p><strong>Simple. Focused. Productive.</strong></p>
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-15.3.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19.0.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+</div>
+
+---
+
+## About
+
+Lumi is a modern task management application built with Next.js 15 and React 19. It focuses on simplicity and productivity, helping teams organize their work efficiently.
+
+## Features
+
+- Simple task management and tracking
+- Team collaboration
+- Due date tracking
+- Modern, responsive UI
+- Secure authentication
+- Real-time updates
+
+## Tech Stack
+
+- **Framework:** Next.js 15 with App Router
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS 4
+- **Database:** PostgreSQL with Drizzle ORM
+- **Authentication:** NextAuth.js
+- **State Management:** TanStack Query
+- **Package Manager:** Bun
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+ or Bun
+- PostgreSQL database
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/yourusername/lumi.git
+   cd lumi
+   ```
 
-## Learn More
+2. **Install dependencies**
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   bun install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Set up environment variables**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   cp .env.example .env.local
+   ```
 
-## Deploy on Vercel
+   Fill in your environment variables:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```env
+   DATABASE_URL="postgresql://username:password@localhost:5432/lumi"
+   NEXTAUTH_SECRET="your-secret-key"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Set up the database**
+
+   ```bash
+   bun run db:generate
+   bun run db:push
+   ```
+
+5. **Run the development server**
+
+   ```bash
+   bun run dev
+   ```
+
+6. **Open your browser**
+
+   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/simple`)
+3. Commit your changes (`git commit -m 'Add some minimalist things'`)
+4. Push to the branch (`git push origin feature/simple`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+  <p>Made with ❤️ by the Lumi team</p>
+</div>
