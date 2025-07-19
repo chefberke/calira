@@ -4,12 +4,13 @@ import {
   timestamp,
   text,
   integer,
+  serial,
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
-  id: varchar("id", { length: 255 }).primaryKey(),
+  id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull().unique(),
   emailVerified: timestamp("email_verified"),
@@ -22,7 +23,7 @@ export const users = pgTable("users", {
 export const accounts = pgTable(
   "accounts",
   {
-    userId: varchar("user_id", { length: 255 })
+    userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: varchar("type", { length: 255 }).notNull(),
@@ -49,7 +50,7 @@ export const sessions = pgTable("sessions", {
   sessionToken: varchar("session_token", { length: 255 })
     .notNull()
     .primaryKey(),
-  userId: varchar("user_id", { length: 255 })
+  userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires").notNull(),

@@ -31,7 +31,7 @@ CREATE TABLE "teams" (
 );
 --> statement-breakpoint
 CREATE TABLE "accounts" (
-	"user_id" varchar(255) NOT NULL,
+	"user_id" integer NOT NULL,
 	"type" varchar(255) NOT NULL,
 	"provider" varchar(255) NOT NULL,
 	"provider_account_id" varchar(255) NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE "accounts" (
 --> statement-breakpoint
 CREATE TABLE "sessions" (
 	"session_token" varchar(255) PRIMARY KEY NOT NULL,
-	"user_id" varchar(255) NOT NULL,
+	"user_id" integer NOT NULL,
 	"expires" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" varchar(255) PRIMARY KEY NOT NULL,
+	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255),
 	"email" varchar(255) NOT NULL,
 	"email_verified" timestamp,

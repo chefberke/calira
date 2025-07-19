@@ -17,12 +17,10 @@ export const tasks = pgTable("tasks", {
   teamId: integer("team_id")
     .references(() => teams.id)
     .notNull(),
-  createdById: varchar("created_by_id", { length: 255 })
+  createdById: integer("created_by_id")
     .references(() => users.id)
     .notNull(),
-  assignedToId: varchar("assigned_to_id", { length: 255 }).references(
-    () => users.id
-  ),
+  assignedToId: integer("assigned_to_id").references(() => users.id),
   dueDate: timestamp("due_date"),
   completed: boolean("completed").notNull().default(false),
   completedAt: timestamp("completed_at"),

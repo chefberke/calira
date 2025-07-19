@@ -16,7 +16,7 @@ export const teamMembers = pgTable(
     teamId: integer("team_id")
       .references(() => teams.id)
       .notNull(),
-    userId: varchar("user_id", { length: 255 })
+    userId: integer("user_id")
       .references(() => users.id)
       .notNull(),
     joinedAt: timestamp("joined_at").defaultNow().notNull(),
