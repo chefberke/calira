@@ -1,9 +1,16 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
+
+  // API route'lar için rate limiting uygula
+  if (nextUrl.pathname.startsWith("/api/")) {
+    const rateLimitResult = await rateLimit(req);
+    if (rateLimitResult) return rateLimitResult;
+  }
 
   // Define public routes that don't require authentication
   const publicRoutes = ["/sign-in", "/sign-up"];
