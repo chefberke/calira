@@ -78,14 +78,16 @@ export async function rateLimit(request: NextRequest) {
 
   if (rateLimitStore.size > 1000) {
     const entries = Array.from(rateLimitStore.entries());
-    const expiredEntries = entries.filter(([_, data]) => now > data.resetTime);
+    const expiredEntries = entries.filter(([, data]) => now > data.resetTime);
     expiredEntries.forEach(([key]) => rateLimitStore.delete(key));
   }
 
   return null;
 }
 
-export function withRateLimit(handler: Function) {
+export function withRateLimit(
+  handler: (request: NextRequest) => Promise<NextResponse>
+) {
   return async (request: NextRequest) => {
     const rateLimitResult = await rateLimit(request);
     if (rateLimitResult) return rateLimitResult;
