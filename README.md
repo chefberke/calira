@@ -1,7 +1,7 @@
 <div>
-    <img src="./public/logo_classic.svg" alt="Lumi Logo" width="48" height="48">
+    <img src="./public/logo_classic.svg" alt="Calira Logo" width="48" height="48">
   <h1>
-    Lumi
+    Calira
   </h1>
   <p><strong>Simple. Focused. Productive.</strong></p>
   
@@ -15,7 +15,7 @@
 
 ## About
 
-Lumi is a modern task management application built with Next.js 15 and React 19. It focuses on simplicity and productivity, helping teams organize their work efficiently.
+Calira is a modern task management application built with Next.js 15 and React 19. It focuses on simplicity and productivity, helping teams organize their work efficiently.
 
 ## Features
 
@@ -48,8 +48,8 @@ Lumi is a modern task management application built with Next.js 15 and React 19.
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/lumi.git
-   cd lumi
+   git clone https://github.com/chefberke/Calira.git
+   cd Calira
    ```
 
 2. **Install dependencies**
@@ -67,7 +67,7 @@ Lumi is a modern task management application built with Next.js 15 and React 19.
    Fill in your environment variables:
 
    ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/lumi"
+   DATABASE_URL="postgresql://username:password@localhost:5432/calira"
    NEXTAUTH_SECRET="your-secret-key"
    NEXTAUTH_URL="http://localhost:3000"
    ```

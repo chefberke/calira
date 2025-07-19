@@ -118,7 +118,7 @@ export default function UserSettings({ children }: UserSettingsProps) {
         className="bg-transparent border-0 shadow-none w-auto h-full p-8 flex flex-col [&>button]:hidden outline-none focus:outline-none ring-0 focus:ring-0"
         side="right"
       >
-        <div className="w-[600px] h-full bg-white rounded-2xl shadow-sm border border-neutral-100 p-6 flex flex-col relative">
+        <div className="w-[450px] h-full bg-white rounded-2xl shadow-sm border border-neutral-100 p-6 flex flex-col relative">
           {/* Hidden title for accessibility */}
           <VisuallyHidden>
             <SheetTitle>Settings</SheetTitle>
@@ -189,14 +189,26 @@ export default function UserSettings({ children }: UserSettingsProps) {
           </div>
 
           {/* Logout Button */}
-          <div className="mt-auto pt-6 border-t border-neutral-200">
-            <Button
+          <div className="mt-auto pt-6">
+            <button
               onClick={handleLogout}
-              variant="outline"
-              className="w-full h-11 justify-center text-neutral-700 border-neutral-300 hover:bg-neutral-50 cursor-pointer hover:border-neutral-400 transition-colors"
+              className="w-full py-3 px-4 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-lg transition-all duration-200 flex items-center justify-center group cursor-pointer"
             >
+              <svg
+                className="w-4 h-4 mr-2 text-neutral-500 group-hover:text-neutral-700 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
               Sign out
-            </Button>
+            </button>
           </div>
         </div>
       </SheetContent>

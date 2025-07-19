@@ -11,8 +11,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Lumi",
-  description: "Lumi is a basic todo app",
+  title: "Calira",
+  description: "Calira is a basic todo app",
   icons: {
     icon: "/logo_classic.svg",
   },

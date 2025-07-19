@@ -67,7 +67,7 @@ function Nav() {
     >
       <motion.div variants={logoVariants}>
         <Link href="/">
-          <Image src="/logo.svg" alt="logo" width={72} height={72} />
+          <Image src="/logo.svg" alt="logo" width={75} height={75} />
         </Link>
       </motion.div>
 

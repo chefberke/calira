@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import PageTransition from "@/components/shared/PageTransition";
 import CreateTask from "@/components/shared/CreateTask";
 import Tasks from "@/components/shared/Tasks";
@@ -32,15 +32,7 @@ function TeamPage() {
   }
 
   if (!currentTeam) {
-    return (
-      <PageTransition>
-        <div className="w-full h-full py-6 sm:py-8 lg:py-10 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-20 2xl:px-64">
-          <div className="flex items-center justify-center py-8">
-            <p className="text-gray-500">Team not found</p>
-          </div>
-        </div>
-      </PageTransition>
-    );
+    redirect("/board");
   }
 
   return (
