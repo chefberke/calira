@@ -94,11 +94,13 @@ export const {
       // Create teams for all users if they don't exist
       if (user.id) {
         try {
+          const userId = Number(user.id);
+
           // Check if user already has teams
           const existingTeams = await db
             .select()
             .from(teams)
-            .where(eq(teams.ownerId, parseInt(user.id)))
+            .where(eq(teams.ownerId, userId))
             .limit(1);
 
           // If no teams exist, create default teams
@@ -110,13 +112,13 @@ export const {
                   name: "Home",
                   description: "Your personal workspace for organizing tasks",
                   emoji: "🏠",
-                  ownerId: parseInt(user.id),
+                  ownerId: userId,
                 },
                 {
                   name: "Today",
                   description: "Tasks to focus on today",
                   emoji: "📅",
-                  ownerId: parseInt(user.id),
+                  ownerId: userId,
                 },
               ])
               .returning();

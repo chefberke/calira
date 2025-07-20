@@ -46,6 +46,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Convert session user id to number
+    const userId = Number(session.user.id);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
     // Parse request body
     const body = await request.json();
     const validatedData = createTaskSchema.parse(body);
@@ -54,12 +60,7 @@ export async function POST(request: NextRequest) {
     const team = await db
       .select()
       .from(teams)
-      .where(
-        and(
-          eq(teams.id, validatedData.teamId),
-          eq(teams.ownerId, parseInt(session.user.id))
-        )
-      )
+      .where(and(eq(teams.id, validatedData.teamId), eq(teams.ownerId, userId)))
       .limit(1);
 
     if (team.length === 0) {
@@ -81,10 +82,10 @@ export async function POST(request: NextRequest) {
         title: validatedData.title,
         description: validatedData.description,
         teamId: validatedData.teamId,
-        createdById: parseInt(session.user.id),
+        createdById: userId,
         assignedToId: validatedData.assignedToId
-          ? parseInt(validatedData.assignedToId)
-          : parseInt(session.user.id),
+          ? Number(validatedData.assignedToId)
+          : userId,
         dueDate,
         completed: validatedData.completed,
         completedAt: validatedData.completed ? new Date() : undefined,
@@ -126,6 +127,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Convert session user id to number
+    const userId = Number(session.user.id);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const teamId = searchParams.get("teamId");
@@ -133,7 +140,7 @@ export async function GET(request: NextRequest) {
     const todayFilter = searchParams.get("today");
 
     // Build query conditions
-    const whereConditions = [eq(tasks.createdById, parseInt(session.user.id))];
+    const whereConditions = [eq(tasks.createdById, userId)];
 
     if (teamId) {
       whereConditions.push(eq(tasks.teamId, parseInt(teamId)));
@@ -189,6 +196,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Convert session user id to number
+    const userId = Number(session.user.id);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
     // Parse request body
     const body = await request.json();
     const validatedData = updateTaskSchema.parse(body);
@@ -197,12 +210,7 @@ export async function PUT(request: NextRequest) {
     const existingTask = await db
       .select()
       .from(tasks)
-      .where(
-        and(
-          eq(tasks.id, validatedData.id),
-          eq(tasks.createdById, parseInt(session.user.id))
-        )
-      )
+      .where(and(eq(tasks.id, validatedData.id), eq(tasks.createdById, userId)))
       .limit(1);
 
     if (existingTask.length === 0) {
@@ -218,10 +226,7 @@ export async function PUT(request: NextRequest) {
         .select()
         .from(teams)
         .where(
-          and(
-            eq(teams.id, validatedData.teamId),
-            eq(teams.ownerId, parseInt(session.user.id))
-          )
+          and(eq(teams.id, validatedData.teamId), eq(teams.ownerId, userId))
         )
         .limit(1);
 
@@ -307,6 +312,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Convert session user id to number
+    const userId = Number(session.user.id);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
     // Get task ID from query parameters
     const { searchParams } = new URL(request.url);
     const taskId = searchParams.get("id");
@@ -327,12 +338,7 @@ export async function DELETE(request: NextRequest) {
     const existingTask = await db
       .select()
       .from(tasks)
-      .where(
-        and(
-          eq(tasks.id, taskIdNum),
-          eq(tasks.createdById, parseInt(session.user.id))
-        )
-      )
+      .where(and(eq(tasks.id, taskIdNum), eq(tasks.createdById, userId)))
       .limit(1);
 
     if (existingTask.length === 0) {
