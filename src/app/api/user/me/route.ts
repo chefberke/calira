@@ -14,8 +14,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Convert session user id to number (Google provides string, credentials provides number)
-    const userId = Number(session.user.id);
+    // Convert session user id to number (now always database ID)
+    const userId = parseInt(session.user.id);
 
     if (isNaN(userId)) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });

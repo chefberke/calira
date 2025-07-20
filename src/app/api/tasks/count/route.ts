@@ -13,17 +13,11 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Convert session user id to number
-    const userId = Number(session.user.id);
-    if (isNaN(userId)) {
-      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
-    }
-
     // Get user's teams
     const userTeams = await db
       .select()
       .from(teams)
-      .where(eq(teams.ownerId, userId));
+      .where(eq(teams.ownerId, parseInt(session.user.id)));
 
     // Find Home team
     const homeTeam = userTeams.find((team) => team.name === "Home");
@@ -46,7 +40,12 @@ export async function GET() {
       ? await db
           .select({ count: count() })
           .from(tasks)
-          .where(and(eq(tasks.createdById, userId), eq(tasks.completed, false)))
+          .where(
+            and(
+              eq(tasks.createdById, parseInt(session.user.id)),
+              eq(tasks.completed, false)
+            )
+          )
       : [{ count: 0 }];
 
     // Count today's incomplete tasks (all tasks with due date today, regardless of team)
@@ -55,7 +54,7 @@ export async function GET() {
       .from(tasks)
       .where(
         and(
-          eq(tasks.createdById, userId),
+          eq(tasks.createdById, parseInt(session.user.id)),
           eq(tasks.completed, false),
           gte(tasks.dueDate, startOfDay),
           lt(tasks.dueDate, endOfDay)
@@ -72,7 +71,7 @@ export async function GET() {
           .from(tasks)
           .where(
             and(
-              eq(tasks.createdById, userId),
+              eq(tasks.createdById, parseInt(session.user.id)),
               eq(tasks.teamId, team.id),
               eq(tasks.completed, false)
             )

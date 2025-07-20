@@ -30,6 +30,44 @@ export const {
           response_type: "code",
         },
       },
+      async profile(profile) {
+        // Check if user already exists in database
+        const existingUser = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.email, profile.email!))
+          .limit(1);
+
+        if (existingUser.length > 0) {
+          // User exists, return with database ID
+          return {
+            id: existingUser[0].id.toString(),
+            name: existingUser[0].name || profile.name,
+            email: profile.email,
+            image: existingUser[0].image || profile.picture,
+          };
+        }
+
+        // User doesn't exist, create new user
+        const newUser = await db
+          .insert(usersTable)
+          .values({
+            name: profile.name,
+            email: profile.email!,
+            image: profile.picture,
+            emailVerified: new Date(), // Google users are email verified
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+        return {
+          id: newUser[0].id.toString(),
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
     }),
     Credentials({
       name: "credentials",
@@ -94,7 +132,7 @@ export const {
       // Create teams for all users if they don't exist
       if (user.id) {
         try {
-          const userId = Number(user.id);
+          const userId = parseInt(user.id);
 
           // Check if user already has teams
           const existingTeams = await db
