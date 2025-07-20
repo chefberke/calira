@@ -3,8 +3,8 @@ CREATE TABLE "tasks" (
 	"title" varchar(255) NOT NULL,
 	"description" text,
 	"team_id" integer NOT NULL,
-	"created_by_id" integer NOT NULL,
-	"assigned_to_id" integer,
+	"created_by_id" varchar(255) NOT NULL,
+	"assigned_to_id" varchar(255),
 	"due_date" timestamp,
 	"completed" boolean DEFAULT false NOT NULL,
 	"completed_at" timestamp,
@@ -15,7 +15,7 @@ CREATE TABLE "tasks" (
 CREATE TABLE "team_members" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"team_id" integer NOT NULL,
-	"user_id" integer NOT NULL,
+	"user_id" varchar(255) NOT NULL,
 	"joined_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "team_members_team_id_user_id_unique" UNIQUE("team_id","user_id")
 );
@@ -25,13 +25,13 @@ CREATE TABLE "teams" (
 	"name" varchar(255) NOT NULL,
 	"description" text,
 	"emoji" varchar(10),
-	"owner_id" integer NOT NULL,
+	"owner_id" varchar(255) NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "accounts" (
-	"user_id" integer NOT NULL,
+	"user_id" varchar(255) NOT NULL,
 	"type" varchar(255) NOT NULL,
 	"provider" varchar(255) NOT NULL,
 	"provider_account_id" varchar(255) NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE "accounts" (
 --> statement-breakpoint
 CREATE TABLE "sessions" (
 	"session_token" varchar(255) PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
+	"user_id" varchar(255) NOT NULL,
 	"expires" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" varchar(255) PRIMARY KEY NOT NULL,
 	"name" varchar(255),
 	"email" varchar(255) NOT NULL,
 	"email_verified" timestamp,

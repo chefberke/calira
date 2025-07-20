@@ -5,6 +5,7 @@ import { teams } from "@/db/schema/teams";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 const signUpSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -51,10 +52,11 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Create user with string ID
     const newUser = await db
       .insert(users)
       .values({
+        id: randomUUID(), // Generate a unique string ID
         email,
         password: hashedPassword,
         name: email.split("@")[0], // Use email prefix as default name

@@ -17,7 +17,7 @@ export async function GET() {
     const userTeams = await db
       .select()
       .from(teams)
-      .where(eq(teams.ownerId, parseInt(session.user.id)));
+      .where(eq(teams.ownerId, session.user.id));
 
     // Find Home team
     const homeTeam = userTeams.find((team) => team.name === "Home");
@@ -42,7 +42,7 @@ export async function GET() {
           .from(tasks)
           .where(
             and(
-              eq(tasks.createdById, parseInt(session.user.id)),
+              eq(tasks.createdById, session.user.id),
               eq(tasks.completed, false)
             )
           )
@@ -54,7 +54,7 @@ export async function GET() {
       .from(tasks)
       .where(
         and(
-          eq(tasks.createdById, parseInt(session.user.id)),
+          eq(tasks.createdById, session.user.id),
           eq(tasks.completed, false),
           gte(tasks.dueDate, startOfDay),
           lt(tasks.dueDate, endOfDay)
@@ -71,7 +71,7 @@ export async function GET() {
           .from(tasks)
           .where(
             and(
-              eq(tasks.createdById, parseInt(session.user.id)),
+              eq(tasks.createdById, session.user.id),
               eq(tasks.teamId, team.id),
               eq(tasks.completed, false)
             )

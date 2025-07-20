@@ -6,6 +6,7 @@ import { teams } from "@/db/schema/teams";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -41,17 +42,18 @@ export const {
         if (existingUser.length > 0) {
           // User exists, return with database ID
           return {
-            id: existingUser[0].id.toString(),
+            id: existingUser[0].id,
             name: existingUser[0].name || profile.name,
             email: profile.email,
             image: existingUser[0].image || profile.picture,
           };
         }
 
-        // User doesn't exist, create new user
+        // User doesn't exist, create new user with string ID
         const newUser = await db
           .insert(usersTable)
           .values({
+            id: randomUUID(), // Generate a unique string ID
             name: profile.name,
             email: profile.email!,
             image: profile.picture,
@@ -62,7 +64,7 @@ export const {
           .returning();
 
         return {
-          id: newUser[0].id.toString(),
+          id: newUser[0].id,
           name: profile.name,
           email: profile.email,
           image: profile.picture,
@@ -107,7 +109,7 @@ export const {
           }
 
           return {
-            id: user[0].id.toString(),
+            id: user[0].id,
             email: user[0].email,
             name: user[0].name,
             image: user[0].image,
@@ -132,13 +134,25 @@ export const {
       // Create teams for all users if they don't exist
       if (user.id) {
         try {
-          const userId = parseInt(user.id);
+          // First, get the actual user from database to ensure we have the correct ID
+          const dbUser = await db
+            .select()
+            .from(usersTable)
+            .where(eq(usersTable.email, user.email!))
+            .limit(1);
+
+          if (dbUser.length === 0) {
+            console.error("❌ User not found in database:", user.email);
+            return true; // Don't fail sign-in
+          }
+
+          const actualUserId = dbUser[0].id;
 
           // Check if user already has teams
           const existingTeams = await db
             .select()
             .from(teams)
-            .where(eq(teams.ownerId, userId))
+            .where(eq(teams.ownerId, actualUserId))
             .limit(1);
 
           // If no teams exist, create default teams
@@ -150,13 +164,13 @@ export const {
                   name: "Home",
                   description: "Your personal workspace for organizing tasks",
                   emoji: "🏠",
-                  ownerId: userId,
+                  ownerId: actualUserId,
                 },
                 {
                   name: "Today",
                   description: "Tasks to focus on today",
                   emoji: "📅",
-                  ownerId: userId,
+                  ownerId: actualUserId,
                 },
               ])
               .returning();
@@ -185,7 +199,23 @@ export const {
       // If this is the first time the JWT callback is called
       // after signing in, the user object will be available
       if (user) {
-        token.sub = user.id;
+        // Get the actual user ID from database
+        try {
+          const dbUser = await db
+            .select()
+            .from(usersTable)
+            .where(eq(usersTable.email, user.email!))
+            .limit(1);
+
+          if (dbUser.length > 0) {
+            token.sub = dbUser[0].id;
+          } else {
+            token.sub = user.id;
+          }
+        } catch (error) {
+          console.error("Error getting user ID for JWT:", error);
+          token.sub = user.id;
+        }
       }
       return token;
     },
