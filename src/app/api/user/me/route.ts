@@ -18,7 +18,7 @@ export async function GET() {
     const user = await db
       .select()
       .from(users)
-      .where(eq(users.id, session.user.id))
+      .where(eq(users.id, parseInt(session.user.id)))
       .limit(1);
 
     if (!user.length) {
@@ -33,7 +33,7 @@ export async function GET() {
       const existingTeams = await db
         .select()
         .from(teams)
-        .where(eq(teams.ownerId, session.user.id))
+        .where(eq(teams.ownerId, parseInt(session.user.id)))
         .limit(1);
 
       if (existingTeams.length === 0) {
@@ -42,13 +42,13 @@ export async function GET() {
             name: "Home",
             description: "Your personal workspace for organizing tasks",
             emoji: "🏠",
-            ownerId: session.user.id,
+            ownerId: parseInt(session.user.id),
           },
           {
             name: "Today",
             description: "Tasks to focus on today",
             emoji: "📅",
-            ownerId: session.user.id,
+            ownerId: parseInt(session.user.id),
           },
         ]);
       }
@@ -61,7 +61,7 @@ export async function GET() {
     const userAccounts = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.userId, session.user.id));
+      .where(eq(accounts.userId, parseInt(session.user.id)));
 
     // Check if user has Google provider
     const hasGoogleProvider = userAccounts.some(
@@ -72,7 +72,7 @@ export async function GET() {
     const [taskCountResult] = await db
       .select({ count: count() })
       .from(tasksTable)
-      .where(eq(tasksTable.createdById, session.user.id));
+      .where(eq(tasksTable.createdById, parseInt(session.user.id)));
 
     const taskCount = taskCountResult?.count || 0;
 

@@ -165,7 +165,9 @@ const duplicateTask = async (
     title: `${originalTask.title} (Copy)`,
     description: originalTask.description || undefined,
     teamId: originalTask.teamId,
-    assignedToId: originalTask.assignedToId || undefined,
+    assignedToId: originalTask.assignedToId
+      ? originalTask.assignedToId.toString()
+      : undefined,
     dueDate: originalTask.dueDate
       ? originalTask.dueDate instanceof Date
         ? originalTask.dueDate.toISOString()
@@ -316,8 +318,10 @@ export const useCreateTask = () => {
         title: newTaskData.title,
         description: newTaskData.description || null,
         teamId: newTaskData.teamId,
-        createdById: "temp", // Will be replaced by server response
-        assignedToId: newTaskData.assignedToId || "temp",
+        createdById: 0, // Will be replaced by server response
+        assignedToId: newTaskData.assignedToId
+          ? parseInt(newTaskData.assignedToId)
+          : null,
         dueDate: newTaskData.dueDate ? new Date(newTaskData.dueDate) : null,
         completed: newTaskData.completed || false,
         completedAt: newTaskData.completed ? new Date() : null,

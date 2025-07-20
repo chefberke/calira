@@ -18,7 +18,7 @@ export async function GET() {
     const userTeams = await db
       .select()
       .from(teams)
-      .where(eq(teams.ownerId, session.user.id))
+      .where(eq(teams.ownerId, parseInt(session.user.id)))
       .orderBy(teams.createdAt);
 
     return NextResponse.json({
@@ -66,14 +66,14 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description || null,
         emoji: emoji || null,
-        ownerId: session.user.id,
+        ownerId: parseInt(session.user.id),
       })
       .returning();
 
     // Add the owner as a team member
     await db.insert(teamMembers).values({
       teamId: newTeam.id,
-      userId: session.user.id,
+      userId: parseInt(session.user.id),
     });
 
     return NextResponse.json({
@@ -133,7 +133,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-    if (existingTeam[0].ownerId !== session.user.id) {
+    if (existingTeam[0].ownerId !== parseInt(session.user.id)) {
       return NextResponse.json(
         { error: "Unauthorized to edit this team" },
         { status: 403 }
@@ -195,7 +195,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-    if (existingTeam[0].ownerId !== session.user.id) {
+    if (existingTeam[0].ownerId !== parseInt(session.user.id)) {
       return NextResponse.json(
         { error: "Unauthorized to delete this team" },
         { status: 403 }

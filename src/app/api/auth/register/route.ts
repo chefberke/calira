@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { usersTable } from "@/db";
+import { users } from "@/db/schema/users";
 import { teams } from "@/db/schema/teams";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { randomUUID } from "crypto";
 
 const signUpSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -38,8 +37,8 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const existingUser = await db
       .select()
-      .from(usersTable)
-      .where(eq(usersTable.email, email))
+      .from(users)
+      .where(eq(users.email, email))
       .limit(1);
 
     if (existingUser.length > 0) {
@@ -54,9 +53,8 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const newUser = await db
-      .insert(usersTable)
+      .insert(users)
       .values({
-        id: randomUUID(),
         email,
         password: hashedPassword,
         name: email.split("@")[0], // Use email prefix as default name

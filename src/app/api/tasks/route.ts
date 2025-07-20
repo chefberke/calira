@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(teams.id, validatedData.teamId),
-          eq(teams.ownerId, session.user.id)
+          eq(teams.ownerId, parseInt(session.user.id))
         )
       )
       .limit(1);
@@ -81,8 +81,10 @@ export async function POST(request: NextRequest) {
         title: validatedData.title,
         description: validatedData.description,
         teamId: validatedData.teamId,
-        createdById: session.user.id,
-        assignedToId: validatedData.assignedToId || session.user.id,
+        createdById: parseInt(session.user.id),
+        assignedToId: validatedData.assignedToId
+          ? parseInt(validatedData.assignedToId)
+          : parseInt(session.user.id),
         dueDate,
         completed: validatedData.completed,
         completedAt: validatedData.completed ? new Date() : undefined,
@@ -131,7 +133,7 @@ export async function GET(request: NextRequest) {
     const todayFilter = searchParams.get("today");
 
     // Build query conditions
-    const whereConditions = [eq(tasks.createdById, session.user.id)];
+    const whereConditions = [eq(tasks.createdById, parseInt(session.user.id))];
 
     if (teamId) {
       whereConditions.push(eq(tasks.teamId, parseInt(teamId)));
@@ -198,7 +200,7 @@ export async function PUT(request: NextRequest) {
       .where(
         and(
           eq(tasks.id, validatedData.id),
-          eq(tasks.createdById, session.user.id)
+          eq(tasks.createdById, parseInt(session.user.id))
         )
       )
       .limit(1);
@@ -218,7 +220,7 @@ export async function PUT(request: NextRequest) {
         .where(
           and(
             eq(teams.id, validatedData.teamId),
-            eq(teams.ownerId, session.user.id)
+            eq(teams.ownerId, parseInt(session.user.id))
           )
         )
         .limit(1);
@@ -237,7 +239,7 @@ export async function PUT(request: NextRequest) {
       title?: string;
       description?: string | null;
       teamId?: number;
-      assignedToId?: string | null;
+      assignedToId?: number | null;
       dueDate?: Date | null;
       completed?: boolean;
       completedAt?: Date | null;
@@ -252,7 +254,9 @@ export async function PUT(request: NextRequest) {
     if (validatedData.teamId !== undefined)
       updateData.teamId = validatedData.teamId;
     if (validatedData.assignedToId !== undefined)
-      updateData.assignedToId = validatedData.assignedToId;
+      updateData.assignedToId = validatedData.assignedToId
+        ? parseInt(validatedData.assignedToId)
+        : null;
     if (validatedData.dueDate !== undefined) {
       updateData.dueDate = validatedData.dueDate
         ? new Date(validatedData.dueDate)
@@ -324,7 +328,10 @@ export async function DELETE(request: NextRequest) {
       .select()
       .from(tasks)
       .where(
-        and(eq(tasks.id, taskIdNum), eq(tasks.createdById, session.user.id))
+        and(
+          eq(tasks.id, taskIdNum),
+          eq(tasks.createdById, parseInt(session.user.id))
+        )
       )
       .limit(1);
 

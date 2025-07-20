@@ -1,14 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "@/db";
-import {
-  users as usersTable,
-  accounts as accountsTable,
-  sessions as sessionsTable,
-  verificationTokens as verificationTokensTable,
-} from "@/db/schema/users";
+import { db, usersTable } from "@/db";
 import { teams } from "@/db/schema/teams";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -26,12 +19,6 @@ export const {
   signOut,
 } = NextAuth({
   trustHost: true,
-  adapter: DrizzleAdapter(db, {
-    usersTable,
-    accountsTable,
-    sessionsTable,
-    verificationTokensTable,
-  }),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -82,7 +69,7 @@ export const {
           }
 
           return {
-            id: user[0].id,
+            id: user[0].id.toString(),
             email: user[0].email,
             name: user[0].name,
             image: user[0].image,
@@ -111,7 +98,7 @@ export const {
           const existingTeams = await db
             .select()
             .from(teams)
-            .where(eq(teams.ownerId, user.id))
+            .where(eq(teams.ownerId, parseInt(user.id)))
             .limit(1);
 
           // If no teams exist, create default teams
@@ -123,13 +110,13 @@ export const {
                   name: "Home",
                   description: "Your personal workspace for organizing tasks",
                   emoji: "🏠",
-                  ownerId: user.id,
+                  ownerId: parseInt(user.id),
                 },
                 {
                   name: "Today",
                   description: "Tasks to focus on today",
                   emoji: "📅",
-                  ownerId: user.id,
+                  ownerId: parseInt(user.id),
                 },
               ])
               .returning();
