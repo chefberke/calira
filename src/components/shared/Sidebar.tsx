@@ -177,7 +177,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
           alt="Home"
           width={20}
           height={20}
-          className="w-5 h-5"
+          className="w-6 h-6"
         />
       ),
       href: "/board",
@@ -193,7 +193,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
           alt="Today"
           width={20}
           height={20}
-          className="w-5 h-5"
+          className="w-6 h-6"
         />
       ),
       href: "/board/today",
@@ -225,10 +225,10 @@ function Sidebar({ onNavigate }: SidebarProps) {
   const getItemStyles = (item: SidebarItem) => {
     if (item.type === "action") {
       // Action items (Create new list) - lighter grey styling
-      return `flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group text-neutral-500 hover:text-neutral-600`;
+      return `flex w-full justify-between items-center rounded-lg p-3 h-12 transition-all duration-200 hover:bg-neutral-100 group text-neutral-500 hover:text-neutral-600`;
     } else {
       // Navigation items (Home, Today) - darker styling
-      return `flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group ${
+      return `flex w-full justify-between items-center rounded-lg p-3 h-12 transition-all duration-200 hover:bg-neutral-100 group ${
         isActive(item.href)
           ? "bg-neutral-100 text-neutral-900"
           : "text-neutral-800 hover:text-neutral-900"
@@ -643,7 +643,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
                     /* Normal Team Link */
                     <Link
                       href={`/board/team/${team.id}`}
-                      className={`flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group ${
+                      className={`flex w-full justify-between items-center rounded-lg p-3 h-12 transition-all duration-200 hover:bg-neutral-100 group ${
                         pathname === `/board/team/${team.id}` ||
                         pathname.startsWith(`/board/team/${team.id}/`)
                           ? "bg-neutral-100 text-neutral-900"
@@ -662,7 +662,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
                               : "text-neutral-700 group-hover:text-neutral-900"
                           }`}
                         >
-                          <span className="text-lg">{team.emoji || "📋"}</span>
+                          <span className="text-xl">{team.emoji || "📋"}</span>
                         </div>
                         <span className="font-semibold text-sm truncate">
                           {team.name}
@@ -777,7 +777,7 @@ function Sidebar({ onNavigate }: SidebarProps) {
                       ease: [0.4, 0, 0.2, 1],
                     }}
                     onClick={handleCreateListClick}
-                    className="flex w-full justify-between items-center rounded-lg p-3 transition-all duration-200 hover:bg-neutral-100 group text-neutral-500 hover:text-neutral-600"
+                    className="flex w-full justify-between items-center rounded-lg p-3 h-12 transition-all duration-200 hover:bg-neutral-100 group text-neutral-500 hover:text-neutral-600"
                   >
                     <div className="flex items-center gap-3">
                       <div className="text-neutral-400 group-hover:text-neutral-500">

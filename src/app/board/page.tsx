@@ -7,6 +7,7 @@ import PageTransition from "@/components/shared/PageTransition";
 import CreateTask from "@/components/shared/CreateTask";
 import Tasks from "@/components/shared/Tasks";
 import UserSettings from "@/components/shared/UserSettings";
+import { Onboarding } from "@/components/shared/Onboarding";
 import { useUser } from "@/lib/hooks/useTasks";
 import { motion } from "framer-motion";
 
@@ -120,6 +121,7 @@ function Page() {
         </div>
         <CreateTask />
         <Tasks />
+        <Onboarding autoShow={true} />
       </div>
     </PageTransition>
   );
