@@ -816,73 +816,80 @@ function Sidebar({ onNavigate }: SidebarProps) {
                     className="rounded-lg"
                   >
                     <form onSubmit={handleSubmit}>
-                      <div className="flex items-center gap-3">
-                        {/* Emoji picker button */}
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg hover:bg-neutral-200 transition-colors text-sm"
-                          >
-                            <span>{selectedEmoji}</span>
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              className="text-neutral-500"
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 flex-1">
+                          {/* Emoji picker button */}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                              className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg hover:bg-neutral-200 transition-colors text-sm"
                             >
-                              <path
-                                d="M3 4.5L6 7.5L9 4.5"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-
-                          {/* Emoji picker dropdown */}
-                          <AnimatePresence>
-                            {showEmojiPicker && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: -8 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: -8 }}
-                                transition={{
-                                  duration: 0.25,
-                                  ease: [0.4, 0, 0.2, 1],
-                                }}
-                                className="absolute top-12 left-0 z-[9999] shadow-xl rounded-lg border border-neutral-200 bg-white"
+                              <span>{selectedEmoji}</span>
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                className="text-neutral-500"
                               >
-                                <Picker
-                                  data={data}
-                                  onEmojiSelect={handleEmojiSelect}
-                                  theme="light"
-                                  set="native"
-                                  previewPosition="none"
-                                  skinTonePosition="none"
-                                  maxFrequentRows={2}
-                                  perLine={8}
-                                  emojiSize={20}
-                                  emojiButtonSize={32}
+                                <path
+                                  d="M3 4.5L6 7.5L9 4.5"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
                                 />
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                              </svg>
+                            </button>
+
+                            {/* Emoji picker dropdown */}
+                            <AnimatePresence>
+                              {showEmojiPicker && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.9, y: -8 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.9, y: -8 }}
+                                  transition={{
+                                    duration: 0.25,
+                                    ease: [0.4, 0, 0.2, 1],
+                                  }}
+                                  className="absolute top-12 left-0 z-[9999] shadow-xl rounded-lg border border-neutral-200 bg-white"
+                                >
+                                  <Picker
+                                    data={data}
+                                    onEmojiSelect={handleEmojiSelect}
+                                    theme="light"
+                                    set="native"
+                                    previewPosition="none"
+                                    skinTonePosition="none"
+                                    maxFrequentRows={2}
+                                    perLine={8}
+                                    emojiSize={20}
+                                    emojiButtonSize={32}
+                                  />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* List name input */}
+                          <input
+                            type="text"
+                            value={listName}
+                            onChange={(e) => setListName(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="List name"
+                            maxLength={50}
+                            className="placeholder:font-medium flex-1 px-3 py-2 rounded-lg border-none focus:outline-none text-sm"
+                            autoFocus
+                          />
                         </div>
 
-                        {/* List name input */}
-                        <input
-                          type="text"
-                          value={listName}
-                          onChange={(e) => setListName(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder="List name"
-                          maxLength={50}
-                          className="placeholder:font-medium flex-1 px-3 py-2 rounded-lg border-none focus:outline-none text-sm"
-                          autoFocus
-                        />
+                        {/* Enter key indicator */}
+                        <div className="rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium bg-neutral-100 text-neutral-500">
+                          ↵
+                        </div>
                       </div>
                     </form>
                   </motion.div>

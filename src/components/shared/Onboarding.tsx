@@ -119,54 +119,65 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
 
   // Animation variants
   const containerVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.98 },
+    hidden: { opacity: 0, y: 40, scale: 0.95, rotateX: 5 },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
+      rotateX: 0,
       transition: {
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-        staggerChildren: 0.08,
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
+        staggerChildren: 0.1,
       },
     },
     exit: {
       opacity: 0,
-      y: -30,
-      scale: 0.98,
+      y: -40,
+      scale: 0.95,
+      rotateX: -5,
       transition: {
-        duration: 0.4,
-        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+        duration: 0.5,
+        ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
       },
     },
   };
 
   const contentVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 40 : -40,
+      x: direction > 0 ? 60 : -60,
       opacity: 0,
-      scale: 0.96,
+      scale: 0.94,
+      rotateY: direction > 0 ? 15 : -15,
     }),
     center: {
       zIndex: 1,
       x: 0,
       opacity: 1,
       scale: 1,
+      rotateY: 0,
       transition: {
-        x: { type: "spring" as const, stiffness: 400, damping: 40 },
-        opacity: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-        scale: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 30,
+        opacity: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+        scale: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+        rotateY: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
       },
     },
     exit: (direction: number) => ({
       zIndex: 0,
-      x: direction < 0 ? 40 : -40,
+      x: direction < 0 ? 60 : -60,
       opacity: 0,
-      scale: 0.96,
+      scale: 0.94,
+      rotateY: direction < 0 ? 15 : -15,
       transition: {
-        x: { type: "spring" as const, stiffness: 400, damping: 40 },
-        opacity: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-        scale: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 30,
+        opacity: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+        scale: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+        rotateY: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
       },
     }),
   };
@@ -185,13 +196,15 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
   };
 
   const lightsVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
+    hidden: { opacity: 0, scale: 0.7, rotate: -10 },
     visible: {
-      opacity: 1,
-      scale: 1,
+      opacity: [0, 0.4, 0.8, 1],
+      scale: [0.7, 1.1, 0.95, 1],
+      rotate: [-10, 5, -2, 0],
       transition: {
-        duration: 1,
-        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+        duration: 1.2,
+        times: [0, 0.3, 0.7, 1],
+        ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
       },
     },
   };
@@ -240,6 +253,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
           initial="hidden"
           animate="visible"
           exit="exit"
+          style={{ perspective: 1000 }}
         >
           <motion.div
             className="flex justify-center p-6"
@@ -247,25 +261,27 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
           >
             <div className="relative w-full">
               <motion.div
-                className={`absolute inset-0 bg-gradient-to-r ${currentStep.lights.primary} rounded-2xl blur-3xl scale-200 opacity-80 transition-all duration-500`}
+                className={`absolute inset-0 bg-gradient-to-r ${currentStep.lights.primary} rounded-3xl blur-3xl scale-200 opacity-80 transition-all duration-700`}
                 variants={lightsVariants}
               ></motion.div>
               <motion.div
-                className={`absolute inset-0 bg-gradient-to-r ${currentStep.lights.secondary} rounded-2xl blur-2xl scale-175 opacity-90 transition-all duration-500`}
+                className={`absolute inset-0 bg-gradient-to-r ${currentStep.lights.secondary} rounded-3xl blur-2xl scale-175 opacity-90 transition-all duration-700`}
                 variants={lightsVariants}
               ></motion.div>
               <motion.div
-                className={`absolute inset-0 bg-gradient-to-r ${currentStep.lights.tertiary} rounded-2xl blur-xl scale-150 opacity-70 transition-all duration-500`}
+                className={`absolute inset-0 bg-gradient-to-r ${currentStep.lights.tertiary} rounded-3xl blur-xl scale-150 opacity-70 transition-all duration-700`}
                 variants={lightsVariants}
               ></motion.div>
               <div className="relative flex justify-center">
-                <Image
-                  src="/logo_classic.svg"
-                  alt="Calira Logo"
-                  width={500}
-                  height={500}
-                  className="h-16 w-16 drop-shadow-lg"
-                />
+                <div className="p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-white/40 dark:border-gray-600/40 shadow-xl">
+                  <Image
+                    src="/logo_classic.svg"
+                    alt="Calira Logo"
+                    width={500}
+                    height={500}
+                    className="h-16 w-16 drop-shadow-lg"
+                  />
+                </div>
               </div>
             </div>
           </motion.div>
