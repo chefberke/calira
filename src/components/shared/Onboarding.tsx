@@ -11,11 +11,21 @@ import {
 import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, easeInOut, easeOut } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface OnboardingProps {
   autoShow?: boolean;
   onComplete?: () => void;
+}
+
+interface StepContent {
+  title: string;
+  description: string;
+  lights: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+  };
 }
 
 function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
@@ -23,7 +33,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
   const [open, setOpen] = useState(false);
   const [direction, setDirection] = useState(0);
 
-  const stepContent = [
+  const stepContent: StepContent[] = [
     {
       title: "Welcome to Calira",
       description:
@@ -109,61 +119,105 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
 
   // Animation variants
   const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30, scale: 0.98 },
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       transition: {
-        duration: 0.3,
-        ease: easeOut,
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1] as any,
+        staggerChildren: 0.08,
       },
     },
     exit: {
       opacity: 0,
-      y: -20,
+      y: -30,
+      scale: 0.98,
       transition: {
-        duration: 0.2,
-        ease: easeInOut,
+        duration: 0.4,
+        ease: [0.16, 1, 0.3, 1] as any,
       },
     },
   };
 
-  const dialogVariants = {
+  const contentVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
+      x: direction > 0 ? 40 : -40,
       opacity: 0,
+      scale: 0.96,
     }),
     center: {
       zIndex: 1,
       x: 0,
       opacity: 1,
+      scale: 1,
+      transition: {
+        x: { type: "spring" as const, stiffness: 400, damping: 40 } as any,
+        opacity: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as any },
+        scale: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as any },
+      },
     },
     exit: (direction: number) => ({
       zIndex: 0,
-      x: direction < 0 ? 300 : -300,
+      x: direction < 0 ? 40 : -40,
       opacity: 0,
+      scale: 0.96,
+      transition: {
+        x: { type: "spring" as const, stiffness: 400, damping: 40 } as any,
+        opacity: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as any },
+        scale: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as any },
+      },
     }),
   };
 
   const logoVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
+    hidden: { opacity: 0, scale: 0.9, y: 10 },
     visible: {
       opacity: 1,
       scale: 1,
+      y: 0,
       transition: {
-        duration: 0.3,
-        ease: easeOut,
+        duration: 0.8,
+        ease: [0.16, 1, 0.3, 1] as any,
       },
     },
   };
 
   const lightsVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, scale: 0.8 },
     visible: {
       opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 1,
+        ease: [0.16, 1, 0.3, 1] as any,
+      },
+    },
+  };
+
+  const indicatorVariants = {
+    hidden: { opacity: 0, scale: 0.8, y: 10 },
+    visible: (index: number) => ({
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        delay: index * 0.05,
+        duration: 0.3,
+        ease: [0.16, 1, 0.3, 1] as any,
+      },
+    }),
+  };
+
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
       transition: {
         duration: 0.4,
-        ease: easeOut,
+        ease: [0.16, 1, 0.3, 1] as any,
       },
     },
   };
@@ -220,14 +274,10 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
             key={step}
             className="space-y-2 pt-4 relative z-10"
             custom={direction}
-            variants={dialogVariants}
+            variants={contentVariants}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 },
-            }}
           >
             <h2 className="text-xl font-medium text-gray-900 dark:text-gray-100">
               {currentStep.title}
@@ -239,9 +289,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
 
           <motion.div
             className="flex justify-start space-x-2 mb-4"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.2 }}
+            variants={buttonVariants}
           >
             {[...Array(totalSteps)].map((_, index) => (
               <motion.div
@@ -252,18 +300,17 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
                     ? "bg-gray-900 dark:bg-gray-100"
                     : "bg-gray-200 dark:bg-gray-700"
                 )}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.15 + index * 0.05, duration: 0.2 }}
+                custom={index}
+                variants={indicatorVariants}
+                initial="hidden"
+                animate="visible"
               />
             ))}
           </motion.div>
 
           <motion.div
             className="flex justify-end items-center space-x-3"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.2 }}
+            variants={buttonVariants}
           >
             <Button
               type="button"
