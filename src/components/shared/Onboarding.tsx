@@ -11,7 +11,7 @@ import {
 import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface OnboardingProps {
   autoShow?: boolean;
@@ -126,7 +126,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       scale: 1,
       transition: {
         duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] as any,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
         staggerChildren: 0.08,
       },
     },
@@ -136,7 +136,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       scale: 0.98,
       transition: {
         duration: 0.4,
-        ease: [0.16, 1, 0.3, 1] as any,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     },
   };
@@ -153,9 +153,9 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       opacity: 1,
       scale: 1,
       transition: {
-        x: { type: "spring" as const, stiffness: 400, damping: 40 } as any,
-        opacity: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as any },
-        scale: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as any },
+        x: { type: "spring" as const, stiffness: 400, damping: 40 },
+        opacity: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+        scale: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
       },
     },
     exit: (direction: number) => ({
@@ -164,9 +164,9 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       opacity: 0,
       scale: 0.96,
       transition: {
-        x: { type: "spring" as const, stiffness: 400, damping: 40 } as any,
-        opacity: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as any },
-        scale: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as any },
+        x: { type: "spring" as const, stiffness: 400, damping: 40 },
+        opacity: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+        scale: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
       },
     }),
   };
@@ -179,7 +179,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       y: 0,
       transition: {
         duration: 0.8,
-        ease: [0.16, 1, 0.3, 1] as any,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     },
   };
@@ -191,7 +191,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       scale: 1,
       transition: {
         duration: 1,
-        ease: [0.16, 1, 0.3, 1] as any,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     },
   };
@@ -205,7 +205,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       transition: {
         delay: index * 0.05,
         duration: 0.3,
-        ease: [0.16, 1, 0.3, 1] as any,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     }),
   };
@@ -217,7 +217,7 @@ function Onboarding({ autoShow = false, onComplete }: OnboardingProps) {
       y: 0,
       transition: {
         duration: 0.4,
-        ease: [0.16, 1, 0.3, 1] as any,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     },
   };
