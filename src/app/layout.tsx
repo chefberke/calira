@@ -27,13 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          src="https://cdn.databuddy.cc/databuddy.js"
-          data-client-id="7XY11uPxCW85k7nOFdBEl"
-          data-enable-batching="true"
-          crossOrigin="anonymous"
-          async
-        />
+        <Script defer src="https://assets.onedollarstats.com/stonks.js" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
         <SessionProvider>
