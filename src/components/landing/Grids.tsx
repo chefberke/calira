@@ -218,7 +218,7 @@ function Grids() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Write a new task"
-                    className={`h-12 md:h-14 rounded-2xl bg-gray-300/50 border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:border-none font-medium transition-all duration-200 ${
+                    className={`h-12 md:h-14 rounded-2xl bg-gray-200/50 border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:border-none font-medium transition-all duration-200 ${
                       isFocused
                         ? "pl-12 md:pl-14 pr-28 md:pr-36"
                         : "pl-4 pr-12 md:pr-16"
