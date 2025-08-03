@@ -6,7 +6,7 @@ import {
   timestamp,
   unique,
 } from "drizzle-orm/pg-core";
-import { users } from "./auth";
+import { user } from "./auth";
 
 export const teamMembers = pgTable(
   "team_members",
@@ -14,7 +14,7 @@ export const teamMembers = pgTable(
     id: serial("id").primaryKey(),
     teamId: integer("team_id").notNull(),
     userId: varchar("user_id", { length: 255 })
-      .references(() => users.id)
+      .references(() => user.id)
       .notNull(),
     joinedAt: timestamp("joined_at").defaultNow().notNull(),
   },

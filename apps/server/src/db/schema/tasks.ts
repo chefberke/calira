@@ -7,7 +7,7 @@ import {
   timestamp,
   boolean,
 } from "drizzle-orm/pg-core";
-import { users } from "./auth";
+import { user } from "./auth";
 
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
@@ -15,10 +15,10 @@ export const tasks = pgTable("tasks", {
   description: text("description"),
   teamId: integer("team_id").notNull(),
   createdById: varchar("created_by_id", { length: 255 })
-    .references(() => users.id)
+    .references(() => user.id)
     .notNull(),
   assignedToId: varchar("assigned_to_id", { length: 255 }).references(
-    () => users.id
+    () => user.id
   ),
   dueDate: timestamp("due_date"),
   completed: boolean("completed").notNull().default(false),
