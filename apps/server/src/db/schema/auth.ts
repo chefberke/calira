@@ -1,47 +1,82 @@
-import { pgTable, text, timestamp, boolean, serial } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  varchar,
+  timestamp,
+  text,
+  integer,
+  primaryKey,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
-export const user = pgTable("user", {
-					id: text("id").primaryKey(),
-					name: text('name').notNull(),
- email: text('email').notNull().unique(),
- emailVerified: boolean('email_verified').notNull(),
- image: text('image'),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').notNull()
-				});
+export const users = pgTable("users", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  emailVerified: timestamp("email_verified"),
+  image: varchar("image", { length: 500 }),
+  password: text("password"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
-export const session = pgTable("session", {
-					id: text("id").primaryKey(),
-					expiresAt: timestamp('expires_at').notNull(),
- token: text('token').notNull().unique(),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').notNull(),
- ipAddress: text('ip_address'),
- userAgent: text('user_agent'),
- userId: text('user_id').notNull().references(()=> user.id, { onDelete: 'cascade' })
-				});
+export const accounts = pgTable(
+  "accounts",
+  {
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: varchar("type", { length: 255 }).notNull(),
+    provider: varchar("provider", { length: 255 }).notNull(),
+    providerAccountId: varchar("provider_account_id", {
+      length: 255,
+    }).notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: varchar("token_type", { length: 255 }),
+    scope: varchar("scope", { length: 255 }),
+    id_token: text("id_token"),
+    session_state: varchar("session_state", { length: 255 }),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  })
+);
 
-export const account = pgTable("account", {
-					id: text("id").primaryKey(),
-					accountId: text('account_id').notNull(),
- providerId: text('provider_id').notNull(),
- userId: text('user_id').notNull().references(()=> user.id, { onDelete: 'cascade' }),
- accessToken: text('access_token'),
- refreshToken: text('refresh_token'),
- idToken: text('id_token'),
- accessTokenExpiresAt: timestamp('access_token_expires_at'),
- refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
- scope: text('scope'),
- password: text('password'),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').notNull()
-				});
+export const sessions = pgTable("sessions", {
+  sessionToken: varchar("session_token", { length: 255 })
+    .notNull()
+    .primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires").notNull(),
+});
 
-export const verification = pgTable("verification", {
-					id: text("id").primaryKey(),
-					identifier: text('identifier').notNull(),
- value: text('value').notNull(),
- expiresAt: timestamp('expires_at').notNull(),
- createdAt: timestamp('created_at'),
- updatedAt: timestamp('updated_at')
-				});
+export const verificationTokens = pgTable(
+  "verification_tokens",
+  {
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    token: varchar("token", { length: 255 }).notNull(),
+    expires: timestamp("expires").notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  })
+);
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
